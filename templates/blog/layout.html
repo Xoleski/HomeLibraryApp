@@ -1,0 +1,23 @@
+{% extends 'blog/base.html' %}
+
+{% block body %}
+
+<script src="{{ url_for('static', path='blog/js/demo-theme.min.js?1692870487') }}"></script>
+<div class="page">
+  <!-- Navbar -->
+  {% include 'blog/components/navbar.html' %}
+  {% include 'blog/components/header.html' %}
+  <div class="page-wrapper">
+    <!-- Page body -->
+    <div class="page-body">
+      <div class="container-xl d-flex flex-column justify-content-center">
+          <div id="content">
+            {% block content %}
+            {% endblock %}
+          </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

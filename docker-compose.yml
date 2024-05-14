@@ -1,0 +1,132 @@
+version: "3.8"
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    command: "python -m api"
+    environment:
+      POSTGRES_URL: postgresql+asyncpg://admin:admin@db:5432/admin
+    depends_on:
+      - migrations
+    env_file:
+      - ".env"
+    ports:
+      - "8080:80"
+    volumes:
+      - "./api:/opt/api:ro"
+      - "./src:/opt/src:ro"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    command: "python -m frontend"
+    environment:
+      POSTGRES_URL: postgresql+asyncpg://admin:admin@db:5432/admin
+    depends_on:
+      - migrations
+    env_file:
+      - ".env"
+    ports:
+      - "8070:80"
+    volumes:
+      - "./src:/opt/src:ro"
+      - "./frontend:/opt/frontend:ro"
+      - "./static:/opt/static:ro"
+      - "./templates:/opt/templates:ro"
+
+  db:
+    image: postgres:16-alpine3.19
+    hostname: "db"
+    env_file:
+      - ".env"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-q", "-d", "${POSTGRES_DB}", "-U", "${POSTGRES_USER}"]
+      timeout: 10s
+      interval: 10s
+      retries: 10
+    ports:
+      - "5432:5432"
+
+  auth:
+    build:
+      context: .
+      dockerfile: auth/Dockerfile
+    command: "python -m auth"
+    environment:
+      POSTGRES_URL: postgresql+asyncpg://admin:admin@db:5432/admin
+    depends_on:
+      - migrations
+    env_file:
+      - ".env"
+    ports:
+      - "80:80"
+    volumes:
+      - "./auth:/opt/auth:ro"
+      - "./src:/opt/src:ro"
+
+  migrations:
+    build:
+      context: .
+      dockerfile: migrations/Dockerfile
+    command: "python -m migrations"
+    environment:
+      POSTGRES_URL: postgresql+asyncpg://admin:admin@db:5432/admin
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - ".env"
+    volumes:
+      - "./migrations:/opt/migrations:rw"
+      - "./src:/opt/src:ro"
+      - "./alembic.ini:/opt/alembic.ini:ro"
+
+  redis:
+    image: redis:7.2.2-alpine3.18
+    hostname: "admin"
+
+  celery-worker:
+    build:
+      context: .
+      dockerfile: src/Dockerfile
+    volumes:
+      - "./src:/opt/src"
+      - "./api:/opt/api"
+      - "./auth:/opt/auth"
+    command: "celery -A src.celery:celery_app worker -l INFO"
+    env_file:
+      - ".env"
+
+  celery-beat:
+    build:
+      context: .
+      dockerfile: src/Dockerfile
+    volumes:
+      - "./src:/opt/src"
+      - "./api:/opt/api"
+      - "./auth:/opt/auth"
+    command: "celery -A src.celery:celery_app beat -l INFO"
+    env_file:
+      - ".env"
+    depends_on:
+      - celery-worker
+
+  celery-flower:
+    build:
+      context: .
+      dockerfile: src/Dockerfile
+    volumes:
+      - "./src:/opt/src"
+      - "./api:/opt/api"
+      - "./auth:/opt/auth"
+    command: "celery -A src.celery:celery_app flower --port=8090"
+    ports:
+      - "8090:8090"
+    env_file:
+      - ".env"
+    depends_on:
+      - celery-worker
+      - celery-beat

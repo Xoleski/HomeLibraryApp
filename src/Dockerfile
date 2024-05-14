@@ -1,0 +1,13 @@
+FROM python:3.11.7-slim
+
+WORKDIR /opt
+
+ENV \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PYTHONFAULTHANDLER=1
+
+COPY ./src/requirements.txt /opt/requirements.txt
+COPY . /opt
+
+RUN pip install --no-cache-dir --upgrade -r /opt/requirements.txt
