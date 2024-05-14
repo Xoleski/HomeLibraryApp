@@ -1,6 +1,6 @@
 from pydantic import Field, PositiveInt
 
-# from .articles import ArticleDTO
+from .articles import ArticleDTO
 from .base import DTO
 from .general_books import GeneralBooksDTO
 

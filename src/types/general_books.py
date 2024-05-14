@@ -6,7 +6,7 @@ from pydantic import PositiveInt, Field
 # from .articles import ArticleDTO
 from .base import DTO
 
-# from .tag import TagDTO
+from .tag import TagDTO
 
 __all__ = (
     "GeneralBooksDTO",
@@ -21,5 +21,5 @@ class GeneralBooksDTO(DTO):
     body: str
     created_at: datetime
     is_published: bool
-    # articles: list[ArticleDTO]
+    tags: list[TagDTO]
     picture: Optional[str] = Field(default=None)

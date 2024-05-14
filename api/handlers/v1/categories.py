@@ -19,7 +19,7 @@ from api.annotated_types import (
     SortByQuery
 )
 from src.database import (Category,
-                          # Article,
+                          Article,
                           GeneralBook)
 from src.dependencies.database_session import (
     DBAsyncSession
@@ -109,7 +109,7 @@ async def category_create(session: DBAsyncSession, data: CategoryCreateDTO):
 async def category_detail(session: DBAsyncSession, pk: CategoryID):
     category = await session.get(
         entity=Category, ident=pk,
-        options=[joinedload(Category.general_books)]
+        options=[joinedload(Category.general_books).subqueryload(GeneralBook.tags)]
     )
     if category is None:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail=f"category {pk} does not exist")
