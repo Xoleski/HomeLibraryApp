@@ -1,0 +1,52 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}
+HOME PAGE
+{% endblock %}
+
+{% block body %}
+<div class="page page-center">
+  <div class="container container-tight py-4">
+    <div class="text-center mb-4">
+      <a href="." class="navbar-brand navbar-brand-autodark"><img src="./static/logo.svg" height="36" alt=""></a>
+    </div>
+    <div class="card card-md">
+      <div class="card-body">
+        <h2 class="h2 text-center mb-4">Login to your account</h2>
+        <form autocomplete="off" novalidate id="register">
+          <div class="mb-3">
+            <label class="form-label">Email address</label>
+            <input type="email" class="form-control" placeholder="your@email.com" autocomplete="off" id="email">
+          </div>
+          <div class="mb-2">
+            <label class="form-label">
+              Password
+            </label>
+            <div class="input-group input-group-flat">
+              <input type="password" class="form-control"  placeholder="Your password"  autocomplete="off" id="password">
+            </div>
+          </div>
+          <div class="mb-2">
+            <label class="form-label">
+              Confirm Password
+            </label>
+            <div class="input-group input-group-flat">
+              <input type="password" class="form-control"  placeholder="Your password"  autocomplete="off" id="confirm_password">
+            </div>
+          </div>
+          <div class="form-footer">
+            <button type="submit" class="btn btn-primary w-100">Sign up</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    <div class="text-center text-muted mt-3">
+      Already have account? <a href="{{ url_for('login') }}" tabindex="-1">Sign in</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', path='blog/js/register.js') }}" defer></script>
+{% endblock %}

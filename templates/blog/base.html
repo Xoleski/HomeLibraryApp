@@ -26,6 +26,7 @@
     {% block body %}{% endblock %}
     <!-- Libs JS -->
     <!-- Tabler Core -->
+    {% block scripts %}{% endblock %}
     <script src="{{ url_for('static', path='blog/js/tabler.min.js?1692870487') }}" defer></script>
     <script src="{{ url_for('static', path='blog/js/demo.min.js?1692870487') }}" defer></script>
     <script src="{{ url_for('static', path='blog/js/api.js') }}" defer></script>

@@ -67,7 +67,7 @@ class Category(Base):
 
     id = Column(INT, primary_key=True)
     name = Column(VARCHAR(length=32), nullable=False, unique=True)
-    slug = Column(VARCHAR(length=128), nullable=False, unique=True)
+    slug = Column(VARCHAR(length=128), nullable=True)
 
     articles = relationship(argument="Article", back_populates="category")
     general_books = relationship(argument="GeneralBook", back_populates="category")

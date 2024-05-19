@@ -2,11 +2,16 @@ from fastapi import FastAPI, Path
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
 from starlette.requests import Request
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from src.settings import settings
 
 
 app = FastAPI()
+app.add_middleware(
+    middleware_class=ProxyHeadersMiddleware,
+    trusted_hosts=("*", )
+)
 static = StaticFiles(directory=settings.BASE_DIR / "static")
 app.mount(path="/static", app=static, name="static")
 templating = Jinja2Templates(directory=settings.BASE_DIR / "templates")
@@ -19,6 +24,23 @@ async def index(request: Request):
         request=request,
         name="blog/index.html",
     )
+
+
+@app.get(path='/login', name="login")
+async def login(request: Request):
+    return templating.TemplateResponse(
+        request=request,
+        name="blog/login.html",
+    )
+
+
+@app.get(path='/register', name="register")
+async def register(request: Request):
+    return templating.TemplateResponse(
+        request=request,
+        name="blog/register.html",
+    )
+
 
 
 @app.get(path="/{id}", name="index")

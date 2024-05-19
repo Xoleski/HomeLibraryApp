@@ -12,8 +12,6 @@ services:
       - migrations
     env_file:
       - ".env"
-    ports:
-      - "8080:80"
     volumes:
       - "./api:/opt/api:ro"
       - "./src:/opt/src:ro"
@@ -29,8 +27,6 @@ services:
       - migrations
     env_file:
       - ".env"
-    ports:
-      - "8070:80"
     volumes:
       - "./src:/opt/src:ro"
       - "./frontend:/opt/frontend:ro"
@@ -47,8 +43,6 @@ services:
       timeout: 10s
       interval: 10s
       retries: 10
-    ports:
-      - "5432:5432"
 
   auth:
     build:
@@ -61,8 +55,6 @@ services:
       - migrations
     env_file:
       - ".env"
-    ports:
-      - "80:80"
     volumes:
       - "./auth:/opt/auth:ro"
       - "./src:/opt/src:ro"
@@ -130,3 +122,17 @@ services:
     depends_on:
       - celery-worker
       - celery-beat
+
+  nginx:
+    image: nginx:1.25.3-alpine3.18
+    ports:
+      - "80:80"
+      - "8080:8080"
+    depends_on:
+      - frontend
+      - api
+      - auth
+    volumes:
+      - "./static:/opt/static:ro"
+      - "./conf.d:/etc/nginx/conf.d:ro"
+      - "./log:/var/log/nginx:rw"

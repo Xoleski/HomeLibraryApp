@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select, and_
 from sqlalchemy.exc import IntegrityError
 from starlette.requests import Request
@@ -11,6 +12,7 @@ from starlette.status import (
     HTTP_401_UNAUTHORIZED,
     HTTP_422_UNPROCESSABLE_ENTITY
     )
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from src.dependencies.authenticate import authenticate
 from src.dependencies.database_session import DBAsyncSession
@@ -23,6 +25,17 @@ from src.settings import jwt_manager, settings
 from auth.google import fetch_google_user_info
 
 app = FastAPI()
+app.add_middleware(
+    middleware_class=CORSMiddleware,
+    allow_origins=("*",),
+    allow_methods=("*",),
+    allow_headers=("*",),
+    allow_credentials=True
+)
+app.add_middleware(
+    middleware_class=ProxyHeadersMiddleware,
+    trusted_hosts=("*", )
+)
 app.add_exception_handler(
     exc_class_or_status_code=RequestValidationError,
     handler=request_validation_exception_handler  # noqa
@@ -122,7 +135,7 @@ async def refresh(db_session: DBAsyncSession, data: RefreshTokenDTO):
 
 
 @app.get(
-    path="/api/login/google",
+    path="/api/auth/login/google",
     response_class=RedirectResponse
 )
 async def login_google():

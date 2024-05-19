@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from api.handlers import v1
 from src.exception_handlers import request_validation_exception_handler
@@ -18,6 +19,10 @@ app.add_middleware(
     allow_methods=("*",),
     allow_headers=("*",),
     allow_credentials=True
+)
+app.add_middleware(
+    middleware_class=ProxyHeadersMiddleware,
+    trusted_hosts=("*", )
 )
 
 
