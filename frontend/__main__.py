@@ -43,8 +43,8 @@ async def register(request: Request):
 
 
 
-@app.get(path="/{id}", name="index")
-async def index(request: Request, pk: int = Path(alias="id")):
+@app.get(path="/{slug}", name="index")
+async def index(request: Request, slug: str = Path(alias="slug")):
     return templating.TemplateResponse(
         request=request,
         name="blog/index.html",

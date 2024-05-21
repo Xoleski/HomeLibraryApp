@@ -10,6 +10,7 @@ class CategoryCreateDTO(DTO):
         min_length=2,
         max_length=64,
     )
+    slug: str | None
 
 
 class CategoryUpdateDTO(CategoryCreateDTO):

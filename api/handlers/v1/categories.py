@@ -33,7 +33,7 @@ from src.types import (
 )
 
 from src.tasks.tasks import foo
-
+from sqlalchemy import event
 
 
 router = APIRouter(tags=["Category"])
@@ -79,6 +79,13 @@ async def category_list(
 #     return {"status": task.status}
 
 
+# Event listener for automatically generating slug and converting name to lowercase
+@event.listens_for(Category, 'before_insert')
+def before_insert_listener(mapper, connection, target: Category):
+    # target.to_lowercase()
+    target.generate_slug()
+
+
 @router.post(
     path="/categories",
     response_model=CategoryDTO,
@@ -101,18 +108,23 @@ async def category_create(session: DBAsyncSession, data: CategoryCreateDTO):
 
 
 @router.get(
-    path="/categories/{id}",
+    path="/categories/{slug}",
     response_model=CategoryExtendedDTO,
     status_code=HTTP_200_OK,
     name="category-detail"
 )
-async def category_detail(session: DBAsyncSession, pk: CategoryID):
-    category = await session.get(
-        entity=Category, ident=pk,
-        options=[joinedload(Category.general_books).subqueryload(GeneralBook.tags)]
+async def category_detail(session: DBAsyncSession, slug: str):
+    result = await session.execute(
+        select(Category)
+        .where(Category.slug == slug)
+        .options(
+            joinedload(Category.general_books).subqueryload(GeneralBook.tags)
+        )
     )
+    category = result.scalars().first()
+
     if category is None:
-        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail=f"category {pk} does not exist")
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail=f"category {slug} does not exist")
     return CategoryExtendedDTO.model_validate(obj=category)
 
 

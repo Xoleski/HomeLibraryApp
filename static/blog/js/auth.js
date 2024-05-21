@@ -78,26 +78,68 @@ categoryCreateForm.addEventListener("submit", async (e) => {
 
 
 
-
-
-
-async function renderGeneralBookCards(categoryID) {
-    const response = await api.v1.categories.get(categoryID);
-    if (response.status === 200) {
-        const contentDiv = document.getElementById("content");
+async function renderGeneralBookCards(slug) {
+    const response = await api.v1.categories.detail(slug);
+    if (response) {
+        const contentDiv = document.getElementById("general-books-list");
         contentDiv.innerHTML = "";
-        response.data.general_books.map(function (general_book) {
-            contentDiv.innerHTML += `<div class="col-md-6 col-lg-3">
+        response.general_books.forEach(function (general_book) {
+            contentDiv.innerHTML += `<div class="col-12 mb-3">
                 <div class="card">
                   <div class="card-body">
-                    <h3 class="card-title"></h3>
-                    <p class="text-secondary">${general_book.title}</p>
+                    <h3 class="card-title">НАЗВАНИЕ:    ${general_book.title}</h3>
+                    <p class="text-secondary">СОДЕРЖАНИЕ:    ${general_book.body}</p>
+                    <div class="tags">
+                        ТЭГИ:    ${general_book.tags.map(tag => `<span class="tag">${tag.name}</span>`).join('')}
+                    </div>
                   </div>
                 </div>
-              </div>`
-        })
+              </div>`;
+        });
     }
 }
+
+
+//async function renderGeneralBookCards(slug) {
+//    const response = await api.v1.categories.detail(slug);
+//    if (response.status === 200) {
+//        const category = response.data;
+//        document.getElementById("category-name").textContent = category.name;
+//
+//        let generalBooksList = document.getElementById("general-books-list");
+//        generalBooksList.innerHTML = "";
+//        category.general_books.forEach(generalBook => {
+//            const generalBookItem = document.createElement("div");
+//            generalBookItem.className = "general-book-item";
+//            generalBookItem.innerHTML = `
+//                <h3>${generalBook.title}</h3>
+//                <p>${generalBook.body}</p>
+//                <div class="tags">
+//                    ${generalBook.tags.map(tag => `<span class="tag">${tag.name}</span>`).join('')}
+//                </div>
+//            `;
+//            generalBooksList.appendChild(generalBookItem);
+//        });
+//    }
+//}
+
+//async function renderGeneralBookCards(slug) {
+//    const response = await api.v1.categories.detail(slug);
+//    if (response.status === 200) {
+//        const contentDiv = document.getElementById("content");
+//        contentDiv.innerHTML = "";
+//        response.data.general_books.map(function (general_book) {
+//            contentDiv.innerHTML += `<div class="col-md-6 col-lg-3">
+//                <div class="card">
+//                  <div class="card-body">
+//                    <h3 class="card-title"></h3>
+//                    <p class="text-secondary">${general_book.title}</p>
+//                  </div>
+//                </div>
+//              </div>`
+//        })
+//    }
+//}
 
 //async function renderArticleCards(categoryID) {
 //    const response = await api.v1.categories.get(categoryID);
@@ -117,34 +159,79 @@ async function renderGeneralBookCards(categoryID) {
 //    }
 //}
 
+//async function renderCategoryDropdownList() {
+//    const response = await api.v1.categories.list();
+//    if (response.status === 200) {
+//        let categoryDropdown = document.getElementById("category-dropdown-list");
+//        categoryDropdown.innerHTML = "";
+//        response.data.map(function (category) {
+//            const categoryLink = document.createElement("a");
+//            categoryLink.className = "dropdown-item";
+//            categoryLink.setAttribute( "rel", "noopener");
+//            categoryLink.href = `/${category.id}`
+//            categoryLink.textContent = category.name;
+//            categoryDropdown.appendChild(categoryLink);
+//        })
+//    }
+//}
+
+
+
 async function renderCategoryDropdownList() {
     const response = await api.v1.categories.list();
     if (response.status === 200) {
         let categoryDropdown = document.getElementById("category-dropdown-list");
         categoryDropdown.innerHTML = "";
-        response.data.map(function (category) {
+        response.data.forEach(function (category) {
             const categoryLink = document.createElement("a");
             categoryLink.className = "dropdown-item";
-            categoryLink.setAttribute( "rel", "noopener");
-            categoryLink.href = `/${category.id}`
+            categoryLink.setAttribute("rel", "noopener");
+            categoryLink.href = `/${category.slug}`;
             categoryLink.textContent = category.name;
+            categoryLink.addEventListener("click", async (event) => {
+                await renderCategoryDetail(category.slug);
+            });
+            console.log(category.slug)
             categoryDropdown.appendChild(categoryLink);
-        })
+        });
     }
 }
 
 
-
-
+//async function renderCategoryDetail(slug) {
+//    const response = await api.v1.categories.detail(slug);
+//    if (response.status === 200) {
+//        const category = response;
+//        document.getElementById("category-name").textContent = category.name;
+//
+//        let generalBooksList = document.getElementById("general-books-list");
+//        generalBooksList.innerHTML = "";
+//        category.general_books.forEach(generalBook => {
+//            const generalBookItem = document.createElement("div");
+//            generalBookItem.className = "general-book-item";
+//            generalBookItem.innerHTML = `
+//                <h3>${generalBook.title}</h3>
+//                <p>${generalBook.body}</p>
+//                <div class="tags">
+//                    ${generalBook.tags.map(tag => `<span class="tag">${tag.name}</span>`).join('')}
+//                </div>
+//            `;
+//            console.log(general_books.title)
+//            generalBooksList.appendChild(generalBookItem);
+//        });
+//    }
+//}
 
 document.addEventListener("DOMContentLoaded", async () => {
     await getAccessToken()
     await renderCategoryDropdownList();
-    let categoryID = document.location.pathname.split("/")[1];
-    try {
-        categoryID = parseInt(categoryID);
-        if (!isNaN(categoryID)) {
-            await renderGeneralBookCards(categoryID)
+    let categorySlug = document.location.pathname.split("/")[1];
+    if (categorySlug) {
+        try {
+//            await renderCategoryDetail(categorySlug);
+            await renderGeneralBookCards(categorySlug);
+        } catch (e) {
+            console.error("Failed to render general book cards:", e);
         }
-    } catch (e) {}
-})
+    }
+});

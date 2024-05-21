@@ -10,9 +10,25 @@ const api = {
                     return await apiClient.get("/api/v1/categories")
                 } catch (e) {}
             },
-            get: async function(categoryID) {
+//            detail: async function(slug) {
+//                try {
+//                    return await apiClient.fetch(`/api/v1/categories/${slug}`)
+//                } catch (e) {}
+//            },
+            detail: async function(slug) {  // исправлено
                 try {
-                    return await apiClient.get(`/api/v1/categories/${categoryID}`)
+                    const response = await fetch(`/api/v1/categories/${slug}`);
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return await response.json();
+                } catch (e) {
+                    console.error("Error fetching category details:", e);
+                }
+            },
+            get: async function(slug) {
+                try {
+                    return await apiClient.get(`/api/v1/categories/${slug}`)
                 } catch (e) {}
             },
             create: async function(data, headers) {

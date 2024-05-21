@@ -28,6 +28,6 @@ CategoryID = Annotated[
 ]
 
 CategorySortAttrQuery = Annotated[
-    Literal["id", "name"],
+    Literal["id", "name", "slug"],
     Query(alias="sort")
 ]
