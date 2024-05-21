@@ -148,6 +148,9 @@ class Article(Base):
     def __str__(self) -> str:
         return self.title
 
+    def generate_slug(self):
+        # Assuming you have a utility function `slugify` that converts strings to slugs
+        self.slug = slugify(self.title)
 
 
 class User(Base):

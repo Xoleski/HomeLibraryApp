@@ -79,7 +79,7 @@ async def category_list(
 #     return {"status": task.status}
 
 
-# Event listener for automatically generating slug and converting name to lowercase
+# Event listener for automatically generating slug
 @event.listens_for(Category, 'before_insert')
 def before_insert_listener(mapper, connection, target: Category):
     # target.to_lowercase()

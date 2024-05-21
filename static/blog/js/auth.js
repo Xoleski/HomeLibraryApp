@@ -88,7 +88,7 @@ async function renderGeneralBookCards(slug) {
                 <div class="card">
                   <div class="card-body">
                     <h3 class="card-title">НАЗВАНИЕ:    ${general_book.title}</h3>
-                    <p class="text-secondary">СОДЕРЖАНИЕ:    ${general_book.body}</p>
+                    <p class="text-secondary">АВТОР:    ${general_book.body}</p>
                     <div class="tags">
                         ТЭГИ:    ${general_book.tags.map(tag => `<span class="tag">${tag.name}</span>`).join('')}
                     </div>
