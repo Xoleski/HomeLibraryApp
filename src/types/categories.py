@@ -1,6 +1,6 @@
 from pydantic import Field, PositiveInt
 
-from .articles import ArticleDTO
+from .book_private import BookPrivateDTO
 from .base import DTO
 from .general_books import GeneralBooksDTO
 
@@ -10,7 +10,7 @@ class CategoryCreateDTO(DTO):
         min_length=2,
         max_length=64,
     )
-    slug: str | None
+    slug: str | None = None
 
 
 class CategoryUpdateDTO(CategoryCreateDTO):

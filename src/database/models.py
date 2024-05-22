@@ -22,16 +22,14 @@ from transliterate import translit
 
 __all__ = (
     "Base",
-    "Article",
-    "ArticleTag",
+    "BookPrivate",
+    "BookPrivateTag",
     "Category",
     "User",
     "Tag",
     "GeneralBook",
     "GeneralBookTag",
 )
-
-
 
 import re
 import unicodedata
@@ -56,16 +54,16 @@ def slugify(value, allow_unicode=False):
     return re.sub(r'[-\s]+', '-', value).strip('-_')
 
 
-class ArticleTag(Base):
-    __tablename__ = "article_tags"
+class BookPrivateTag(Base):
+    __tablename__ = "book_private_tags"
 
     tag_id = Column(ForeignKey(
         "tags.id", ondelete="RESTRICT", onupdate="CASCADE"),
         nullable=False,
         primary_key=True
     )
-    article_id = Column(ForeignKey(
-        "articles.id", ondelete="RESTRICT", onupdate="CASCADE"),
+    book_private_id = Column(ForeignKey(
+        "books_private.id", ondelete="RESTRICT", onupdate="CASCADE"),
         nullable=False,
         primary_key=True
     )
@@ -96,7 +94,7 @@ class Category(Base):
     name = Column(VARCHAR(length=32), nullable=False, unique=True)
     slug = Column(VARCHAR(length=128), nullable=True)
 
-    articles = relationship(argument="Article", back_populates="category")
+    books_private = relationship(argument="BookPrivate", back_populates="category")
     general_books = relationship(argument="GeneralBook", back_populates="category")
 
     def __str__(self) -> str:
@@ -105,10 +103,17 @@ class Category(Base):
     def generate_slug(self):
         # Assuming you have a utility function `slugify` that converts strings to slugs
         self.slug = slugify(self.name)
+        print(self.slug)
 
     # def to_lowercase(self):
     #     self.name = self.name.lower()
 
+
+# @event.listens_for(Category, 'before_insert')
+# def before_insert_listener(mapper, connection, target: Category):
+#     # target.to_lowercase()
+#     if not target.slug:
+#         target.generate_slug()
 
 
 
@@ -120,14 +125,14 @@ class Tag(Base):
     name = Column(VARCHAR(length=32), nullable=False, unique=True)
 
     general_books = relationship(argument="GeneralBook", secondary=GeneralBookTag.__table__, back_populates="tags")
-    articles = relationship(argument="Article", secondary=ArticleTag.__table__, back_populates="tags")
+    books_private = relationship(argument="BookPrivate", secondary=BookPrivateTag.__table__, back_populates="tags")
 
     def __str__(self) -> str:
         return self.name
 
 
-class Article(Base):
-    __tablename__ = "articles"
+class BookPrivate(Base):
+    __tablename__ = "books_private"
 
     id = Column(INT, primary_key=True)
     title = Column(VARCHAR(length=128), nullable=False)
@@ -142,15 +147,12 @@ class Article(Base):
         nullable=False
     )
 
-    category = relationship(argument=Category, back_populates="articles")
-    tags = relationship(argument=Tag, secondary=ArticleTag.__table__, back_populates="articles")
+    category = relationship(argument=Category, back_populates="books_private")
+    tags = relationship(argument=Tag, secondary=BookPrivateTag.__table__, back_populates="books_private")
 
     def __str__(self) -> str:
         return self.title
 
-    def generate_slug(self):
-        # Assuming you have a utility function `slugify` that converts strings to slugs
-        self.slug = slugify(self.title)
 
 
 class User(Base):

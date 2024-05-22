@@ -3,8 +3,8 @@ from .models import *
 
 __all__ = (
     "Base",
-    "Article",
-    "ArticleTag",
+    "BookPrivate",
+    "BookPrivateTag",
     "Category",
     "User",
     "Tag",

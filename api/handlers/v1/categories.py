@@ -3,7 +3,7 @@ from sqlite3 import IntegrityError
 
 from fastapi import APIRouter, HTTPException, Path
 from sqlalchemy import select, asc, desc, delete, and_
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, validates
 from starlette.status import (
     HTTP_200_OK, HTTP_201_CREATED,
     HTTP_204_NO_CONTENT,
@@ -19,7 +19,7 @@ from api.annotated_types import (
     SortByQuery
 )
 from src.database import (Category,
-                          Article,
+                          BookPrivate,
                           GeneralBook)
 from src.dependencies.database_session import (
     DBAsyncSession
@@ -83,7 +83,9 @@ async def category_list(
 @event.listens_for(Category, 'before_insert')
 def before_insert_listener(mapper, connection, target: Category):
     # target.to_lowercase()
-    target.generate_slug()
+    if not target.slug:
+        target.generate_slug()
+
 
 
 @router.post(
@@ -97,10 +99,12 @@ def before_insert_listener(mapper, connection, target: Category):
 )
 async def category_create(session: DBAsyncSession, data: CategoryCreateDTO):
     category = Category(**data.model_dump())
+    print(f"Creating category with data: {data}")
     session.add(instance=category)
     try:
         await session.commit()
-    except IntegrityError:
+    except IntegrityError as e:
+        print(f"IntegrityError {e}")
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail=f"category {data.name} exists")
     else:
         await session.refresh(instance=category)

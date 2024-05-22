@@ -10,12 +10,7 @@ const api = {
                     return await apiClient.get("/api/v1/categories")
                 } catch (e) {}
             },
-//            detail: async function(slug) {
-//                try {
-//                    return await apiClient.fetch(`/api/v1/categories/${slug}`)
-//                } catch (e) {}
-//            },
-            detail: async function(slug) {  // исправлено
+            detail: async function(slug) {
                 try {
                     const response = await fetch(`/api/v1/categories/${slug}`);
                     if (!response.ok) {
@@ -38,8 +33,10 @@ const api = {
                         method: "post",
                         data: data,
                         headers: headers
-                    })
-                } catch (e) {}
+                    });
+                } catch (e) {
+                    console.error("Failed to create category:", e);
+                }
             }
         }
     },

@@ -3,7 +3,6 @@ from typing import Optional
 
 from pydantic import PositiveInt, Field
 
-# from .articles import ArticleDTO
 from .base import DTO
 
 from .tag import TagDTO

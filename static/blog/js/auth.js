@@ -64,17 +64,53 @@ async function getAccessToken() {
 }
 
 
+
+
 categoryCreateForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+    const categoryNameInput = document.getElementById("categoryName");
     const accessToken = await getAccessToken()
     const tokenType = localStorage.getItem("tokenType");
-    const response = await api.v1.categories.create({name: this.categoryName.value}, {Autharization: `${tokenType} ${accessToken}`})
+    const response = await api.v1.categories.create({name: categoryNameInput.value}, {Autharization: `${tokenType} ${accessToken}`})
+    console.log(categoryNameInput.value)
+    console.log(response)
     if (response !== undefined) {
-        this.categoryName.value ="";
+        console.log("Category created:", categoryName.value)
+        categoryNameInput.value ="";
         await renderCategoryDropdownList()
+    } else {
+        console.error("Failed to create category");
     }
-})
+});
 
+//categoryCreateForm.addEventListener("submit", async (e) => {
+//    e.preventDefault();
+//
+//    const categoryNameInput = document.getElementById("categoryName");
+//    const categoryName = categoryNameInput.value.trim();
+//
+//    if (categoryName === "") {
+//        console.error("Category name cannot be empty");
+//        return;
+//    }
+//
+//    const accessToken = await getAccessToken();
+//    const tokenType = localStorage.getItem("tokenType");
+//
+//    try {
+//        const response = await api.v1.categories.create(
+//            { name: categoryName },
+//            { Authorization: `${tokenType} ${accessToken}` }
+//        );
+//
+//        if (response !== undefined) {
+//            categoryNameInput.value = "";
+//            await renderCategoryDropdownList();
+//        }
+//    } catch (e) {
+//        console.error("Failed to create category:", e);
+//    }
+//})
 
 
 
@@ -141,23 +177,7 @@ async function renderGeneralBookCards(slug) {
 //    }
 //}
 
-//async function renderArticleCards(categoryID) {
-//    const response = await api.v1.categories.get(categoryID);
-//    if (response.status === 200) {
-//        const contentDiv = document.getElementById("content");
-//        contentDiv.innerHTML = "";
-//        response.data.articles.map(function (acticle) {
-//            contentDiv.innerHTML += `<div class="col-md-6 col-lg-3">
-//                <div class="card">
-//                  <div class="card-body">
-//                    <h3 class="card-title"></h3>
-//                    <p class="text-secondary">${acticle.title}</p>
-//                  </div>
-//                </div>
-//              </div>`
-//        })
-//    }
-//}
+
 
 //async function renderCategoryDropdownList() {
 //    const response = await api.v1.categories.list();
@@ -188,9 +208,9 @@ async function renderCategoryDropdownList() {
             categoryLink.setAttribute("rel", "noopener");
             categoryLink.href = `/${category.slug}`;
             categoryLink.textContent = category.name;
-            categoryLink.addEventListener("click", async (event) => {
-                await renderCategoryDetail(category.slug);
-            });
+//            categoryLink.addEventListener("click", async (event) => {
+//                await renderCategoryDetail(category.slug);
+//            });
             console.log(category.slug)
             categoryDropdown.appendChild(categoryLink);
         });
