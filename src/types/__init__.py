@@ -1,6 +1,7 @@
 from .categories import *
 from .user import *
 from .token import *
+from .book_private import *
 
 __all__ = [
     # categories
@@ -15,5 +16,8 @@ __all__ = [
     # tokens
     "TokenPairDTO",
     "RefreshTokenDTO",
+    # books_private
+    "BookPrivateDTO",
+    "BookPrivateCreateDTO",
 ]
 

@@ -17,7 +17,7 @@ class GeneralBooksDTO(DTO):
     title: str = Field(min_length=2, max_length=128)
     # author: str = Field(min_length=2, max_length=128)
     slug: str = Field(min_length=2, max_length=128)
-    body: str
+    author: str | None = None
     created_at: datetime
     is_published: bool
     tags: list[TagDTO]
