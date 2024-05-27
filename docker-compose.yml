@@ -15,6 +15,9 @@ services:
     volumes:
       - "./api:/opt/api:ro"
       - "./src:/opt/src:ro"
+    ports:
+      - "8070:8070"
+
 
   frontend:
     build:

@@ -10,6 +10,7 @@ from .tag import TagDTO
 __all__ = (
     "BookPrivateDTO",
     "BookPrivateCreateDTO",
+    "BookPrivateExtendedDTO",
 )
 
 
@@ -25,3 +26,7 @@ class BookPrivateCreateDTO(BookPrivateDTO):
     is_published: bool
     tags: list[TagDTO]
     picture: Optional[str] = Field(default=None)
+
+
+class BookPrivateExtendedDTO(BookPrivateDTO):
+    books_private: list[BookPrivateDTO]

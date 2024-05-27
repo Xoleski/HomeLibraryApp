@@ -146,13 +146,33 @@ class BookPrivate(Base):
         ForeignKey(column=Category.id, ondelete="RESTRICT", onupdate="CASCADE"),
         nullable=False
     )
+    general_book_id = Column(
+        INT,
+        ForeignKey(column="general_books.id", ondelete="RESTRICT", onupdate="CASCADE"),
+        nullable=True
+    )
+    # general_book_title = Column(
+    #     VARCHAR(length=128),
+    #     ForeignKey(column="general_books.title", ondelete="RESTRICT", onupdate="CASCADE"),
+    #     nullable=True
+    # )
+    # general_book_author = Column(
+    #     VARCHAR(length=128),
+    #     ForeignKey(column="general_books.author", ondelete="RESTRICT", onupdate="CASCADE"),
+    #     nullable=True
+    # )
 
+    general_book = relationship(argument="GeneralBook", back_populates="books_private", foreign_keys="[BookPrivate.general_book_id]")
     category = relationship(argument=Category, back_populates="books_private")
     tags = relationship(argument=Tag, secondary=BookPrivateTag.__table__, back_populates="books_private")
 
     def __str__(self) -> str:
         return self.title
 
+    def generate_slug(self):
+        # Assuming you have a utility function `slugify` that converts strings to slugs
+        self.slug = slugify(self.title)
+        print(self.slug)
 
 
 class User(Base):
@@ -173,9 +193,9 @@ class GeneralBook(Base):
     __tablename__ = "general_books"
 
     id = Column(INT, primary_key=True)
-    title = Column(VARCHAR(length=128), nullable=False)
+    title = Column(VARCHAR(length=128), nullable=True)
     slug = Column(VARCHAR(length=128), nullable=False, unique=True)
-    author = Column(VARCHAR, nullable=True)
+    author = Column(VARCHAR(length=128), nullable=True)
     created_at = Column(TIMESTAMP, server_default="now", nullable=False)
     is_published = Column(BOOLEAN, server_default="false", nullable=False)
     picture = Column(FileType(storage=FileSystemStorage(upload_to="media")), nullable=True)
@@ -185,6 +205,7 @@ class GeneralBook(Base):
         nullable=False
     )
 
+    books_private = relationship(argument=BookPrivate, back_populates="general_book")
     category = relationship(argument=Category, back_populates="general_books")
     tags = relationship(argument=Tag, secondary=GeneralBookTag.__table__, back_populates="general_books")
 

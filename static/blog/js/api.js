@@ -38,6 +38,55 @@ const api = {
                     console.error("Failed to create category:", e);
                 }
             }
+        },
+        books_private: {
+            list: async function(){
+                try {
+                    return await apiClient.get("/api/v1/books_private")
+                } catch (e) {}
+            },
+            detail: async function(title, author) {
+                console.log(title, author)
+                try {
+                    const url = `/api/v1/books_private?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`;
+                    const response = await fetch(url);
+//                    const response = await apiClient.get("/api/v1/books_private")
+//                    console.log(title=${encodeURIComponent(title)})
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return await response.json();
+                } catch (e) {
+                    console.error("Error fetching book_private details:", e);
+                }
+            },
+//            detail: async function(slug) {
+//                try {
+//                    const response = await fetch(`/api/v1/books_private/${slug}`);
+//                    if (!response.ok) {
+//                        throw new Error(`HTTP error! Status: ${response.status}`);
+//                    }
+//                    return await response.json();
+//                } catch (e) {
+//                    console.error("Error fetching book_private details:", e);
+//                }
+//            },
+            get: async function(slug) {
+                try {
+                    return await apiClient.get(`/api/v1/books_private/${slug}`)
+                } catch (e) {}
+            },
+//            create: async function(data, headers) {
+//                try {
+//                    return await apiClient.request({
+//                        url: "/api/v1/books_private,
+//                        data: data,
+//                        headers: headers
+//                    });
+//                } catch (e) {
+//                    console.error("Failed to create book_private:", e);
+//                }
+//            }
         }
     },
     auth: {

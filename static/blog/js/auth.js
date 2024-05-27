@@ -83,6 +83,138 @@ categoryCreateForm.addEventListener("submit", async (e) => {
     }
 });
 
+
+
+
+
+
+async function renderGeneralBookCards(slug) {
+    const response = await api.v1.categories.detail(slug);
+    if (response) {
+        const contentDiv = document.getElementById("general-books-list");
+        contentDiv.innerHTML = "";
+        response.general_books.forEach(function (general_book) {
+            const card = document.createElement('div');
+            card.classList.add('col-12', 'mb-3');
+            card.innerHTML = `
+                <button class="card btn btn-link text-left p-0">
+                    <div class="card-body">
+                        <h3 class="card-title">НАЗВАНИЕ: ${general_book.title}</h3>
+                        <p class="text-secondary">АВТОР: ${general_book.author}</p>
+                        <div class="tags">
+                            ТЭГИ: ${general_book.tags.map(tag => `<span class="tag">${tag.name}</span>`).join('')}
+                        </div>
+                    </div>
+                </button>`;
+
+            card.querySelector('.card').addEventListener('click', () => {
+                const title = encodeURIComponent(general_book.title);
+                const author = encodeURIComponent(general_book.author);
+                window.location.href = `/books_private?title=${title}&author=${author}`;
+            });
+
+            contentDiv.appendChild(card);
+        });
+    }
+}
+
+
+
+async function renderBookPrivateCards(title, author) {
+    const response = await api.v1.books_private.detail(title, author);
+    if (response) {
+        const contentDiv = document.getElementById("books-private-list");
+        contentDiv.innerHTML = "";
+        response.forEach(function (book_private) {
+            const card = document.createElement('div');
+            card.classList.add('col-12', 'mb-3');
+            card.innerHTML = `
+                <div class="card">
+                    <div class="card-body">
+                        <h3 class="card-title">НАЗВАНИЕ КНИГИ: ${book_private.title}</h3>
+                        <p class="text-secondary">АВТОР КНИГИ: ${book_private.author}</p>
+//                        <div class="tags">
+//                            ТЭГИ: ${book_private.tags.map(tag => `<span class="tag">${tag.name}</span>`).join('')}
+//                        </div>
+                    </div>
+                </div>`;
+            contentDiv.appendChild(card);
+        });
+    }
+}
+
+
+
+
+
+
+async function renderCategoryDropdownList() {
+    const response = await api.v1.categories.list();
+    if (response.status === 200) {
+        let categoryDropdown = document.getElementById("category-dropdown-list");
+        categoryDropdown.innerHTML = "";
+        response.data.forEach(function (category) {
+            const categoryLink = document.createElement("a");
+            categoryLink.className = "dropdown-item";
+            categoryLink.setAttribute("rel", "noopener");
+            categoryLink.href = `/${category.slug}`;
+            categoryLink.textContent = category.name;
+//            categoryLink.addEventListener("click", async (event) => {
+//                await renderCategoryDetail(category.slug);
+//            });
+            console.log(category.slug)
+            categoryDropdown.appendChild(categoryLink);
+        });
+    }
+}
+
+
+
+document.addEventListener("DOMContentLoaded", async () => {
+    await getAccessToken();
+    await renderCategoryDropdownList();
+    let categorySlug = document.location.pathname.split("/")[1];
+    let searchParams = new URLSearchParams(window.location.search);
+    let title = searchParams.get("title");
+    let author = searchParams.get("author");
+
+    if (categorySlug) {
+        try {
+            await renderGeneralBookCards(categorySlug);
+            if (title && author) {
+                try {
+                    await renderBookPrivateCards(title, author);
+                } catch (e) {
+                    console.error("Failed to render private book cards:", e);
+                }
+            }
+
+        } catch (e) {
+            console.error("Failed to render general book cards:", e);
+        }
+    }
+});
+
+
+
+
+
+
+
+//document.addEventListener("DOMContentLoaded", async () => {
+//    await getAccessToken()
+//    await renderGeneralBookCards();
+//    let general_bookSlug = document.location.pathname.split("/")[1];
+//    if (general_bookSlug) {
+//        try {
+//            await renderBookPrivateCards(general_bookSlug);
+//        } catch (e) {
+//            console.error("Failed to render book private cards:", e);
+//        }
+//    }
+//});
+
+
 //categoryCreateForm.addEventListener("submit", async (e) => {
 //    e.preventDefault();
 //
@@ -112,28 +244,124 @@ categoryCreateForm.addEventListener("submit", async (e) => {
 //    }
 //})
 
+//async function renderGeneralBookCards(slug) {
+//    const response = await api.v1.categories.detail(slug);
+//    if (response) {
+//        const contentDiv = document.getElementById("general-books-list");
+//        contentDiv.innerHTML = "";
+//        response.general_books.forEach(function (general_book) {
+//            const card = document.createElement('div');
+//            card.classList.add('col-12', 'mb-3');
+//            card.innerHTML = `<div class="card">
+//                <div class="card-body">
+//                    <h3 class="card-title">НАЗВАНИЕ: ${general_book.title}</h3>
+//                    <p class="text-secondary">АВТОР: ${general_book.author}</p>
+//                    <div class="tags">
+//                        ТЭГИ: ${general_book.tags.map(tag => `<span class="tag">${tag.name}</span>`).join('')}
+//                    </div>
+//                </div>
+//            </div>`;
+//
+//            card.addEventListener('click', () => {
+//                const title = encodeURIComponent(general_book.title);
+//                const author = encodeURIComponent(general_book.author);
+//                window.location.href = `/books?title=${title}&author=${author}`;
+//            });
+//
+//            contentDiv.appendChild(card);
+//        });
+//    }
+//}
+
+//async function renderGeneralBookCards(slug) {
+//    const response = await api.v1.categories.detail(slug);
+//    if (response) {
+//        const contentDiv = document.getElementById("general-books-list");
+//        contentDiv.innerHTML = "";
+//        response.general_books.forEach(function (general_book) {
+//            const card = document.createElement('div');
+//            card.classList.add('col-12', 'mb-3');
+//            card.innerHTML = `
+//                <button class="card btn btn-link text-left p-0">
+//                    <div class="card-body">
+//                        <h3 class="card-title">НАЗВАНИЕ: ${general_book.title}</h3>
+//                        <p class="text-secondary">АВТОР: ${general_book.author}</p>
+//                        <div class="tags">
+//                            ТЭГИ: ${general_book.tags.map(tag => `<span class="tag">${tag.name}</span>`).join('')}
+//                        </div>
+//                    </div>
+//                </button>`;
+//
+//            card.querySelector('.card').addEventListener('click', () => {
+//                const title = encodeURIComponent(general_book.title);
+//                const author = encodeURIComponent(general_book.author);
+//                window.location.href = `/books?title=${title}&author=${author}`;
+//            });
+//
+//            contentDiv.appendChild(card);
+//        });
+//    }
+//}
 
 
-async function renderGeneralBookCards(slug) {
-    const response = await api.v1.categories.detail(slug);
-    if (response) {
-        const contentDiv = document.getElementById("general-books-list");
-        contentDiv.innerHTML = "";
-        response.general_books.forEach(function (general_book) {
-            contentDiv.innerHTML += `<div class="col-12 mb-3">
-                <div class="card">
-                  <div class="card-body">
-                    <h3 class="card-title">НАЗВАНИЕ:    ${general_book.title}</h3>
-                    <p class="text-secondary">АВТОР:    ${general_book.author}</p>
-                    <div class="tags">
-                        ТЭГИ:    ${general_book.tags.map(tag => `<span class="tag">${tag.name}</span>`).join('')}
-                    </div>
-                  </div>
-                </div>
-              </div>`;
-        });
-    }
-}
+
+//async function renderGeneralBookCards(slug) {
+//    const response = await api.v1.categories.detail(slug);
+//    if (response) {
+//        const contentDiv = document.getElementById("general-books-list");
+//        contentDiv.innerHTML = "";
+//        response.general_books.forEach(function (general_book) {
+//            contentDiv.innerHTML += `<div class="col-12 mb-3">
+//                <div class="card">
+//                  <div class="card-body">
+//                    <h3 class="card-title">НАЗВАНИЕ:    ${general_book.title}</h3>
+//                    <p class="text-secondary">АВТОР:    ${general_book.author}</p>
+//                    <div class="tags">
+//                        ТЭГИ:    ${general_book.tags.map(tag => `<span class="tag">${tag.name}</span>`).join('')}
+//                    </div>
+//                  </div>
+//                </div>
+//              </div>`;
+//        });
+//    }
+//}
+
+
+//async function renderBookPrivateCards(slug) {
+//    const response = await api.v1.general_books.detail(slug);
+//    if (response) {
+//        const contentDiv = document.getElementById("books-private-list");
+//        contentDiv.innerHTML = "";
+//        response.data.forEach(function (general_book) {
+//            const general_bookLink = document.createElement("a");
+//            general_bookLink.className = "card";
+//            general_bookLink.setAttribute("rel", "noopener");
+//            general_bookLink.href = `/${general_book.slug}`;
+//            general_bookLink.textContent = general_book.title;
+////            general_bookLink.addEventListener("click", async (event) => {
+////                await renderCategoryDetail(category.slug);
+////            });
+//            console.log(general_book.slug)
+//            contentDiv.appendChild(general_bookLink);
+//        });
+//        response.books_private.forEach(function (book_private) {
+//            contentDiv.innerHTML += `<div class="col-12 mb-3">
+//                <div class="card">
+//                  <div class="card-body">
+//                    <h3 class="card-title">НАЗВАНИЕ:    ${book_private.title}</h3>
+//                    <p class="text-secondary">АВТОР:    ${book_private.author}</p>
+//                    <div class="tags">
+//                        ТЭГИ:    ${book_private.tags.map(tag => `<span class="tag">${tag.name}</span>`).join('')}
+//                    </div>
+//                  </div>
+//                </div>
+//              </div>`;
+//        });
+//    }
+//}
+
+
+
 
 
 //async function renderGeneralBookCards(slug) {
@@ -197,27 +425,6 @@ async function renderGeneralBookCards(slug) {
 
 
 
-async function renderCategoryDropdownList() {
-    const response = await api.v1.categories.list();
-    if (response.status === 200) {
-        let categoryDropdown = document.getElementById("category-dropdown-list");
-        categoryDropdown.innerHTML = "";
-        response.data.forEach(function (category) {
-            const categoryLink = document.createElement("a");
-            categoryLink.className = "dropdown-item";
-            categoryLink.setAttribute("rel", "noopener");
-            categoryLink.href = `/${category.slug}`;
-            categoryLink.textContent = category.name;
-//            categoryLink.addEventListener("click", async (event) => {
-//                await renderCategoryDetail(category.slug);
-//            });
-            console.log(category.slug)
-            categoryDropdown.appendChild(categoryLink);
-        });
-    }
-}
-
-
 //async function renderCategoryDetail(slug) {
 //    const response = await api.v1.categories.detail(slug);
 //    if (response.status === 200) {
@@ -242,16 +449,24 @@ async function renderCategoryDropdownList() {
 //    }
 //}
 
-document.addEventListener("DOMContentLoaded", async () => {
-    await getAccessToken()
-    await renderCategoryDropdownList();
-    let categorySlug = document.location.pathname.split("/")[1];
-    if (categorySlug) {
-        try {
-//            await renderCategoryDetail(categorySlug);
-            await renderGeneralBookCards(categorySlug);
-        } catch (e) {
-            console.error("Failed to render general book cards:", e);
-        }
-    }
-});
+//document.addEventListener("DOMContentLoaded", async () => {
+//    await getAccessToken()
+//    await renderCategoryDropdownList();
+//    let categorySlug = document.location.pathname.split("/")[1];
+//    let general_bookSlug = document.location.pathname.split("/")[1];
+//    if (categorySlug) {
+//        try {
+////            await renderCategoryDetail(categorySlug);
+//            await renderGeneralBookCards(categorySlug);
+//                if (general_bookSlug) {
+//                    try {
+//                        await renderBookPrivateCards(general_bookSlug);
+//                    } catch (e) {
+//                        console.error("Failed to render private book cards:", e);
+//                    }
+//                }
+//        } catch (e) {
+//            console.error("Failed to render general book cards:", e);
+//        }
+//    }
+//});

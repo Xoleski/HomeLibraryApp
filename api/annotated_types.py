@@ -31,3 +31,9 @@ CategorySortAttrQuery = Annotated[
     Literal["id", "name", "slug"],
     Query(alias="sort")
 ]
+
+
+BookPrivateSortAttrQuery = Annotated[
+    Literal["id", "name", "slug", "title", "author", "tags"],
+    Query(alias="sort")
+]
