@@ -125,7 +125,7 @@ async function renderBookPrivateCards(title, author) {
     if (response) {
         const contentDiv = document.getElementById("books-private-list");
         contentDiv.innerHTML = "";
-        response.forEach(function (book_private) {
+        response.books_private.forEach(function (book_private) {
             const card = document.createElement('div');
             card.classList.add('col-12', 'mb-3');
             card.innerHTML = `
@@ -133,9 +133,9 @@ async function renderBookPrivateCards(title, author) {
                     <div class="card-body">
                         <h3 class="card-title">НАЗВАНИЕ КНИГИ: ${book_private.title}</h3>
                         <p class="text-secondary">АВТОР КНИГИ: ${book_private.author}</p>
-//                        <div class="tags">
-//                            ТЭГИ: ${book_private.tags.map(tag => `<span class="tag">${tag.name}</span>`).join('')}
-//                        </div>
+                        <div class="tags">
+                            ТЭГИ: ${book_private.tags_private.map(tag => `<span class="tag">${tag.name}</span>`).join('')}
+                        </div>
                     </div>
                 </div>`;
             contentDiv.appendChild(card);

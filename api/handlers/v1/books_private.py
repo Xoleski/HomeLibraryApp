@@ -1,43 +1,24 @@
-from typing import Optional, List
+from typing import Optional
 
-from celery.result import AsyncResult
-from sqlite3 import IntegrityError
-
-from fastapi import APIRouter, HTTPException, Path, Query
-from sqlalchemy import select, asc, desc, delete, and_
-from sqlalchemy.orm import joinedload, validates
+from fastapi import APIRouter, HTTPException, Query
+from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 from starlette.status import (
-    HTTP_200_OK, HTTP_201_CREATED,
-    HTTP_204_NO_CONTENT,
-    HTTP_400_BAD_REQUEST,
-    HTTP_404_NOT_FOUND
+    HTTP_200_OK, HTTP_404_NOT_FOUND
 )
 
-from api.annotated_types import (
-    CategoryID,
-    PageQuery,
-    PageNumberQuery,
-    CategorySortAttrQuery,
-    SortByQuery, BookPrivateSortAttrQuery
-)
-from src.database import (Category,
-                          BookPrivate,
+from src.database import (BookPrivate,
                           GeneralBook)
 from src.dependencies.database_session import (
     DBAsyncSession
 )
-from src.dependencies.authenticate import authenticate
-from src.types import (
-    BookPrivateDTO,
-    BookPrivateCreateDTO,
-)
+from src.types import GeneralBookExtendedDTO
 
-from src.tasks.tasks import foo
-from sqlalchemy import event
+# from src.types.general_books import GeneralBookExtendedDTO
 
-from src.types.book_private import BookPrivateExtendedDTO
+# from src.types.book_private import BookPrivateExtendedDTO
 
-router = APIRouter(tags=["BookPrivate"])
+router = APIRouter(tags=["GeneralBook"])
 
 
 # @router.get(
@@ -70,8 +51,8 @@ router = APIRouter(tags=["BookPrivate"])
 
 
 @router.get(
-    path="/books_private/{title}{author}",
-    response_model=list[BookPrivateDTO],
+    path="/books_private",
+    response_model=GeneralBookExtendedDTO,
     status_code=HTTP_200_OK,
     response_description="List of books_private",
     summary="Getting a list of books_private",
@@ -87,17 +68,38 @@ async def book_private_list(
         author: Optional[str] = Query(None, alias='author')
 ):
     result = await session.execute(
-        select(BookPrivate)
-        .where(BookPrivate.title == title and BookPrivate.author == author)
+        select(GeneralBook)
+        .where(GeneralBook.title == title and GeneralBook.author == author)
         .options(
-            joinedload(BookPrivate.general_book).subqueryload(BookPrivate.tags)
+            joinedload(GeneralBook.books_private).subqueryload(BookPrivate.tags_private)
         )
     )
     book_private = result.scalars().first()
+    print(book_private)
 
     if book_private is None:
-        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail=f"category {title} {author} does not exist")
-    return BookPrivateExtendedDTO.model_validate(obj=book_private)
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail=f"book {title} {author} does not exist")
+    return GeneralBookExtendedDTO.model_validate(obj=book_private)
+
+    # query = select(BookPrivate).options(
+    #     joinedload(BookPrivate.general_book).subqueryload(GeneralBook.tags)
+    # )
+    # if title:
+    #     query = query.where(BookPrivate.title == title)
+    # if author:
+    #     query = query.where(BookPrivate.author == author)
+    #
+    # result = await session.execute(query)
+    # books_private = result.scalars().all()
+    #
+    # if not books_private:
+    #     raise HTTPException(status_code=HTTP_404_NOT_FOUND,
+    #                         detail=f"Books with title '{title}' and author '{author}' do not exist")
+    #
+    # books_private_dto = [BookPrivateCreateDTO.from_orm(book) for book in books_private]
+    #
+    # return BookPrivateExtendedDTO(id=books_private[0].id, books_private=books_private_dto)
+
 
     # statement = select(BookPrivate)
     #

@@ -126,6 +126,7 @@ async def category_detail(session: DBAsyncSession, slug: str):
         )
     )
     category = result.scalars().first()
+    print(category)
 
     if category is None:
         raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail=f"category {slug} does not exist")

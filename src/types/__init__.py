@@ -2,6 +2,7 @@ from .categories import *
 from .user import *
 from .token import *
 from .book_private import *
+from .general_books import *
 
 __all__ = [
     # categories
@@ -19,5 +20,6 @@ __all__ = [
     # books_private
     "BookPrivateDTO",
     "BookPrivateCreateDTO",
+    "GeneralBookExtendedDTO",
 ]
 

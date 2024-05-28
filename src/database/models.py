@@ -125,7 +125,7 @@ class Tag(Base):
     name = Column(VARCHAR(length=32), nullable=False, unique=True)
 
     general_books = relationship(argument="GeneralBook", secondary=GeneralBookTag.__table__, back_populates="tags")
-    books_private = relationship(argument="BookPrivate", secondary=BookPrivateTag.__table__, back_populates="tags")
+    books_private = relationship(argument="BookPrivate", secondary=BookPrivateTag.__table__, back_populates="tags_private")
 
     def __str__(self) -> str:
         return self.name
@@ -137,7 +137,7 @@ class BookPrivate(Base):
     id = Column(INT, primary_key=True)
     title = Column(VARCHAR(length=128), nullable=False)
     slug = Column(VARCHAR(length=128), nullable=False, unique=True)
-    author = Column(VARCHAR, nullable=False)
+    author = Column(VARCHAR(length=128), nullable=False)
     created_at = Column(TIMESTAMP, server_default="now", nullable=False)
     is_published = Column(BOOLEAN, server_default="false", nullable=False)
     picture = Column(FileType(storage=FileSystemStorage(upload_to="media")), nullable=True)
@@ -151,20 +151,10 @@ class BookPrivate(Base):
         ForeignKey(column="general_books.id", ondelete="RESTRICT", onupdate="CASCADE"),
         nullable=True
     )
-    # general_book_title = Column(
-    #     VARCHAR(length=128),
-    #     ForeignKey(column="general_books.title", ondelete="RESTRICT", onupdate="CASCADE"),
-    #     nullable=True
-    # )
-    # general_book_author = Column(
-    #     VARCHAR(length=128),
-    #     ForeignKey(column="general_books.author", ondelete="RESTRICT", onupdate="CASCADE"),
-    #     nullable=True
-    # )
 
-    general_book = relationship(argument="GeneralBook", back_populates="books_private", foreign_keys="[BookPrivate.general_book_id]")
+    general_book = relationship(argument="GeneralBook", back_populates="books_private")
     category = relationship(argument=Category, back_populates="books_private")
-    tags = relationship(argument=Tag, secondary=BookPrivateTag.__table__, back_populates="books_private")
+    tags_private = relationship(argument=Tag, secondary=BookPrivateTag.__table__, back_populates="books_private")
 
     def __str__(self) -> str:
         return self.title
