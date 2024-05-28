@@ -105,16 +105,6 @@ class Category(Base):
         self.slug = slugify(self.name)
         print(self.slug)
 
-    # def to_lowercase(self):
-    #     self.name = self.name.lower()
-
-
-# @event.listens_for(Category, 'before_insert')
-# def before_insert_listener(mapper, connection, target: Category):
-#     # target.to_lowercase()
-#     if not target.slug:
-#         target.generate_slug()
-
 
 
 

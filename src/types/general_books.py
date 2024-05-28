@@ -3,7 +3,7 @@ from typing import Optional
 
 from pydantic import PositiveInt, Field
 
-from .book_private import BookPrivateCreateDTO, BookPrivateDTO
+from .book_private import BookPrivateDTO
 from .base import DTO
 
 from .tag import TagDTO
@@ -27,11 +27,9 @@ class GeneralBooksForPrivateDTO(GeneralBooksIdDTO):
     is_published: bool
     # tags: list[TagDTO] = None
     picture: Optional[str] = Field(default=None)
-    # category_id: PositiveInt
 
 
 class GeneralBooksDTO(GeneralBooksIdDTO):
-    # id: PositiveInt
     title: str = Field(min_length=2, max_length=128)
     slug: str = Field(min_length=2, max_length=128)
     author: str | None = None
@@ -39,7 +37,6 @@ class GeneralBooksDTO(GeneralBooksIdDTO):
     is_published: bool
     tags: list[TagDTO] = None
     picture: Optional[str] = Field(default=None)
-    # category_id: PositiveInt
 
 
 class GeneralBookExtendedDTO(GeneralBooksForPrivateDTO):
