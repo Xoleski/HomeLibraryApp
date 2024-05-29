@@ -48,7 +48,7 @@ const api = {
             detail: async function(title, author) {
                 console.log(title, author)
                 try {
-                    const url = `/api/v1/books_private?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`;
+                    const url = `/api/v1/books_private_list?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`;
                     const response = await fetch(url);
 //                    const response = await apiClient.get("/api/v1/books_private")
 //                    console.log(title=${encodeURIComponent(title)})

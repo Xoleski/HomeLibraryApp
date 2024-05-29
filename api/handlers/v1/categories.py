@@ -1,5 +1,7 @@
 from celery.result import AsyncResult
-from sqlite3 import IntegrityError
+# from sqlite3 import IntegrityError
+from sqlalchemy.exc import IntegrityError
+
 
 from fastapi import APIRouter, HTTPException, Path
 from sqlalchemy import select, asc, desc, delete, and_
