@@ -67,3 +67,19 @@ UsersSortAttrQuery = Annotated[
     Literal["id", "email",],
     Query(alias="sort")
 ]
+
+
+TagSortAttrQuery = Annotated[
+    Literal["id", "name"],
+    Query(alias="sort")
+]
+
+TagID = Annotated[
+    int,
+    Path(
+        alias="id",
+        title="Tag ID",
+        description="Tag unique identifier",
+        examples=[42]
+    )
+]

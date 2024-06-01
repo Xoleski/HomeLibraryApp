@@ -75,7 +75,7 @@ def before_insert_listener(mapper, connection, target: GeneralBook):
 )
 async def books_private_create(session: DBAsyncSession, data: GeneralBookCreateDTO):
     general_book = GeneralBook(**data.model_dump())
-    print(f"Creating your book with data: {data}")
+    print(f"Creating general book with data: {data}")
     session.add(instance=general_book)
     try:
         await session.commit()
