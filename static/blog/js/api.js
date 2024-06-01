@@ -60,6 +60,18 @@ const api = {
                     console.error("Error fetching book_private details:", e);
                 }
             },
+            create: async function(data, headers) {
+                try {
+                    return await apiClient.request({
+                        url: "/api/v1/books_private",
+                        method: "post",
+                        data: data,
+                        headers: headers
+                    });
+                } catch (e) {
+                    console.error("Failed to create books_private:", e);
+                }
+            },
 //            detail: async function(slug) {
 //                try {
 //                    const response = await fetch(`/api/v1/books_private/${slug}`);

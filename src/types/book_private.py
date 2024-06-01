@@ -12,34 +12,35 @@ __all__ = (
     "BookPrivateDTO",
     "BookPrivateCreateDTO",
     "BookPrivateExtendedDTO",
+    "BookPrivateListDTO",
 )
 
 
 class BookPrivateCreateDTO(DTO):
     title: str = Field(min_length=2, max_length=128)
-    slug: str = Field(min_length=2, max_length=128)
+    slug: str | None = None
     author: str = Field(min_length=2, max_length=128)
-    created_at: datetime
-    is_published: bool
-    tags_private: list[TagDTO] = None
-    picture: Optional[str] = Field(default=None)
     category_id: PositiveInt
+    general_book_id: Optional[PositiveInt] = None
 
 
 class BookPrivateDTO(BookPrivateCreateDTO):
     id: PositiveInt
+    picture: Optional[str] = Field(default=None)
+    created_at: datetime
+    is_published: bool
+    user_email: str = Field(min_length=2, max_length=128)
 
 
 class BookPrivateExtendedDTO(DTO):
     books_private: list[BookPrivateDTO]
 
 
-class BookPrivateListDTO(DTO):
-    id: PositiveInt
-    title: str = Field(min_length=2, max_length=128)
-    slug: str = Field(min_length=2, max_length=128)
-    author: str = Field(min_length=2, max_length=128)
-    created_at: datetime
-    is_published: bool
-    # tags_private: list[TagDTO] = None
-    picture: Optional[str] = Field(default=None)
+class BookPrivateListDTO(BookPrivateDTO):
+    tags_private: list[TagDTO] = None
+
+
+class BookPrivateUpdateDTO(BookPrivateCreateDTO):
+    ...
+
+

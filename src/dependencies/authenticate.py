@@ -8,10 +8,11 @@ from src.settings import jwt_manager
 
 __all__ = [
     "authenticate",
+    "get_current_user",
 ]
 
 
-async def _authenticate(request: Request, db_session: DBAsyncSession, autharization: str = Header(default=None)):
+async def _authenticate(request: Request, db_session: DBAsyncSession, autharization: str = Header(default=None)) -> User:
     if autharization is None:
         raise HTTPException(
             status_code=HTTP_403_FORBIDDEN
@@ -25,6 +26,10 @@ async def _authenticate(request: Request, db_session: DBAsyncSession, autharizat
         )
 
     request.scope["state"]["user"] = user
-
+    return user
 
 authenticate = Depends(dependency=_authenticate)
+
+
+async def get_current_user(user: User = Depends(_authenticate)) -> User:
+    return user

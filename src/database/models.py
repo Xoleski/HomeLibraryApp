@@ -126,11 +126,11 @@ class BookPrivate(Base):
 
     id = Column(INT, primary_key=True)
     title = Column(VARCHAR(length=128), nullable=False)
-    slug = Column(VARCHAR(length=128), nullable=False, unique=True)
+    slug = Column(VARCHAR(length=128), nullable=True)
     author = Column(VARCHAR(length=128), nullable=False)
     created_at = Column(TIMESTAMP, server_default="now", nullable=False)
     is_published = Column(BOOLEAN, server_default="false", nullable=False)
-    picture = Column(FileType(storage=FileSystemStorage(upload_to="media")), nullable=True)
+    picture = Column(FileType(storage=FileSystemStorage(upload_to="media")), nullable=True, default='blank.png')
     category_id = Column(
         INT,
         ForeignKey(column=Category.id, ondelete="RESTRICT", onupdate="CASCADE"),
@@ -141,10 +141,16 @@ class BookPrivate(Base):
         ForeignKey(column="general_books.id", ondelete="RESTRICT", onupdate="CASCADE"),
         nullable=True
     )
+    user_email = Column(
+        VARCHAR(length=128),
+        ForeignKey(column="users.email", ondelete="RESTRICT", onupdate="CASCADE"),
+        nullable=True
+    )
 
     general_book = relationship(argument="GeneralBook", back_populates="books_private")
     category = relationship(argument=Category, back_populates="books_private")
     tags_private = relationship(argument=Tag, secondary=BookPrivateTag.__table__, back_populates="books_private")
+    user = relationship(argument="User", back_populates="books_private")
 
     def __str__(self) -> str:
         return self.title
@@ -152,7 +158,7 @@ class BookPrivate(Base):
     def generate_slug(self):
         # Assuming you have a utility function `slugify` that converts strings to slugs
         self.slug = slugify(self.title)
-        print(self.slug)
+        print(f"Generated slug: {self.slug}")
 
 
 class User(Base):
@@ -164,6 +170,8 @@ class User(Base):
     id = Column(INT, primary_key=True)
     email = Column(VARCHAR(length=128), nullable=False, unique=True)
     password = Column(CHAR(length=60), nullable=False)
+
+    books_private = relationship(argument=BookPrivate, back_populates="user")
 
     def __str__(self) -> str:
         return self.email
@@ -178,7 +186,7 @@ class GeneralBook(Base):
     author = Column(VARCHAR(length=128), nullable=True)
     created_at = Column(TIMESTAMP, server_default="now", nullable=False)
     is_published = Column(BOOLEAN, server_default="false", nullable=False)
-    picture = Column(FileType(storage=FileSystemStorage(upload_to="media")), nullable=True)
+    picture = Column(FileType(storage=FileSystemStorage(upload_to="media")), nullable=True, default='blank.png')
     category_id = Column(
         INT,
         ForeignKey(column=Category.id, ondelete="RESTRICT", onupdate="CASCADE"),
@@ -192,4 +200,8 @@ class GeneralBook(Base):
     def __str__(self) -> str:
         return self.title
 
+    def generate_slug(self):
+        # Assuming you have a utility function `slugify` that converts strings to slugs
+        self.slug = slugify(self.title)
+        print(f"Generated slug: {self.slug}")
 

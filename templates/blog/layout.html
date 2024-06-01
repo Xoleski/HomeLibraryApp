@@ -18,9 +18,10 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path></svg>
                 Create new category
               </a>
-              <a href="#" class="btn btn-primary d-sm-none btn-icon" data-bs-toggle="modal" data-bs-target="#modal-report" aria-label="Create new report">
-                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path></svg>
-              </a>
+              {% include 'blog/button_new_book_private.html' %}
+<!--              <a href="#" class="btn btn-primary d-sm-none btn-icon" data-bs-toggle="modal" data-bs-target="#modal-report" aria-label="Create new report">-->
+<!--                <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"></path><path d="M12 5l0 14"></path><path d="M5 12l14 0"></path></svg>-->
+<!--              </a>-->
             </div>
           </div>
         </div>
@@ -63,5 +64,52 @@
       </div>
     </div>
   </div>
+  <div class="modal modal-blur fade" id="modal-report2" tabindex="-1" style="display: none;" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">New BOOK</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="create-book-private">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label" for="book_privateTitle">Title</label>
+            <input type="text" class="form-control" id="book_privateTitle" name="title" placeholder="Your book title">
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="book_privateAuthor">Author</label>
+            <input type="text" class="form-control" id="book_privateAuthor" name="author" placeholder="Book author">
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="book_privateCategory_id">Category ID</label>
+            <input type="number" class="form-control" id="book_privateCategory_id" name="category_id" placeholder="Book Category ID">
+          </div>
+          <div class="mb-3">
+            <label class="form-label" for="book_privateGeneral_book_id">General Book ID</label>
+            <input type="number" class="form-control" id="book_privateGeneral_book_id" name="general_book_id" placeholder="General Book ID">
+          </div>
+<!--          <div class="mb-3">-->
+<!--            <label class="form-label" for="book_privateSlug">Slug</label>-->
+<!--            <input type="text" class="form-control" id="book_privateSlug" name="Slug" placeholder="Book Slug">-->
+<!--          </div>-->
+        </div>
+        <div class="modal-footer">
+          <a href="#" class="btn btn-link link-secondary" data-bs-dismiss="modal">
+            Cancel
+          </a>
+          <button type="submit" class="btn btn-primary ms-auto">
+            <svg xmlns="http://www.w3.org/2000/svg" class="icon" width="24" height="24" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"></path>
+              <path d="M12 5v14"></path>
+              <path d="M5 12h14"></path>
+            </svg>
+            Create new BOOK
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 </div>
 {% endblock %}

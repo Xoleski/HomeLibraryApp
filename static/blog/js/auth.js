@@ -1,4 +1,5 @@
 const categoryCreateForm = document.getElementById("create-category");
+const book_privateCreateForm = document.getElementById("create-book-private");
 
 
 
@@ -84,8 +85,85 @@ categoryCreateForm.addEventListener("submit", async (e) => {
 });
 
 
+//book_privateCreateForm.addEventListener("submit", async (e) => {
+//    e.preventDefault();
+//    const book_privateTitleInput = document.getElementById("book_privateTitle");
+//    const book_privateAuthorInput = document.getElementById("book_privateAuthor");
+//    const book_privateCategory_idInput = document.getElementById("book_privateCategory_id");
+//    const book_privateGeneral_book_idInput = document.getElementById("book_privateGeneral_book_id");
+////    const book_privatecreated_atInput = document.getElementById("book_privatecreated_at");
+//    const book_privatepictureInput = document.getElementById("book_privatepicture");
+//    const book_privateuser_emailInput = document.getElementById("book_privateuser_email");
+//
+//    const accessToken = await getAccessToken()
+//    const tokenType = localStorage.getItem("tokenType");
+//    const response = await api.v1.books_private.create({title: book_privateTitleInput.value,
+//                                                        author: book_privateAuthorInput.value,
+//                                                        category_id: book_privateCategory_idInput.value,
+//                                                        general_book_id: book_privateGeneral_book_idInput.value,
+////                                                        created_at: book_privatecreated_atInput.value,
+//                                                        picture: book_privatepictureInput.value,
+//                                                        user_email: book_privateuser_emailInput.value,
+//                                                        },
+//                                                        {Autharization: `${tokenType} ${accessToken}`})
+//    console.log(book_privateTitleInput.value)
+//    console.log(response)
+//    if (response !== undefined) {
+//        console.log("Book created:", book_privateTitle.value)
+//        book_privateTitleInput.value ="";
+//        book_privateAuthorInput.value ="";
+//        book_privateCategory_idInput.value ="";
+//        book_privateGeneral_book_idInput.value ="";
+////        book_privatecreated_atInput.value ="";
+//        book_privatepictureInput.value ="";
+//        book_privateuser_emailInput.value ="";
+////        await renderCategoryDropdownList()
+//    } else {
+//        console.error("Failed to create book");
+//    }
+//});
 
+book_privateCreateForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const book_privateTitleInput = document.getElementById("book_privateTitle");
+    const book_privateAuthorInput = document.getElementById("book_privateAuthor");
+    const book_privateCategory_idInput = document.getElementById("book_privateCategory_id");
+    const book_privateGeneral_book_idInput = document.getElementById("book_privateGeneral_book_id");
+//    const book_privateSlugInput = document.getElementById("book_privateSlug");
 
+    const accessToken = await getAccessToken();
+    const tokenType = localStorage.getItem("tokenType");
+
+    const bookData = {
+        title: book_privateTitleInput.value,
+        author: book_privateAuthorInput.value,
+        category_id: parseInt(book_privateCategory_idInput.value),
+        general_book_id: parseInt(book_privateGeneral_book_idInput.value),
+//        slug: book_privateSlugInput.value,
+    };
+
+    try {
+        const response = await api.v1.books_private.create(bookData, {Autharization: `${tokenType} ${accessToken}`});
+        console.log(bookData)
+        console.log(response)
+        console.log(tokenType)
+        console.log(accessToken)
+        if (response !== undefined) {
+            console.log("Book created:", book_privateTitleInput.value);
+            book_privateTitleInput.value = "";
+            book_privateAuthorInput.value = "";
+            book_privateCategory_idInput.value = "";
+            book_privateGeneral_book_idInput.value = "";
+//            book_privateSlugInput.value = "";
+            var modal = bootstrap.Modal.getInstance(document.getElementById('modal-report2'));
+            modal.hide();
+        } else {
+            console.error("Failed to create book on");
+        }
+    } catch (error) {
+        console.error("Failed to create book", error);
+    }
+});
 
 
 async function renderGeneralBookCards(slug) {
@@ -133,6 +211,7 @@ async function renderBookPrivateCards(title, author) {
                     <div class="card-body">
                         <h3 class="card-title">НАЗВАНИЕ КНИГИ: ${book_private.title}</h3>
                         <p class="text-secondary">АВТОР КНИГИ: ${book_private.author}</p>
+                        <p class="text-secondary">ПОЛЬЗОВАТЕЛЬ: ${book_private.user_email}</p>
                         <div class="tags">
                             ТЭГИ: ${book_private.tags_private.map(tag => `<span class="tag">${tag.name}</span>`).join('')}
                         </div>
