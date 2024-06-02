@@ -10,6 +10,8 @@ __all__ = (
     "GeneralBooksDTO",
     "GeneralBookExtendedDTO",
     "GeneralBookUpdateDTO",
+    "GeneralBookCreateDTO",
+    "GeneralBooksForPrivateDTO",
 )
 
 

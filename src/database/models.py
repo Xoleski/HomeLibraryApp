@@ -96,7 +96,6 @@ class Category(Base):
         return self.name
 
     def generate_slug(self):
-        # Assuming you have a utility function `slugify` that converts strings to slugs
         self.slug = slugify(self.name)
         print(self.slug)
 

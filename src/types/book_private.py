@@ -24,10 +24,6 @@ class BookPrivateCreateDTO(DTO):
     tags: Optional[conlist(int)] = None  # Список ID тегов
 
 
-# class BookPrivateToCreateDTO(BookPrivateCreateDTO):
-#     tags: Optional[conlist(int)] = None  # Список ID тегов
-
-
 class BookPrivateUpdateDTO(BookPrivateCreateDTO):
     picture: Optional[str] = Field(default=None)
     is_published: bool

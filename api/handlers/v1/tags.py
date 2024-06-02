@@ -112,40 +112,6 @@ async def tag_delete(session: DBAsyncSession, pk: TagID):
     await session.commit()
 
 
-
-# @router.get(
-#     path="/tag_books_private",
-#     response_model=TagExtendedBookPrivateDTO,
-#     status_code=HTTP_200_OK,
-#     response_description="List of books private",
-#     summary="Getting a list of books private for tag",
-#     name="tag_list_book_private"
-# )
-# async def tag_list_book_private(
-#         session: DBAsyncSession,
-#         page: PageQuery = 1,
-#         page_number: PageNumberQuery = 25,
-#         order: TagSortAttrQuery = "id",
-#         order_by: SortByQuery = "asc",
-#         tag: Optional[str] = Query(None, alias='tag')
-# ):
-#     tag_id = (select(Tag).where(Tag.name == tag))
-#
-#     statement = (select(BookPrivate).
-#                  where(BookPrivate.id == tag_id).
-#                  limit(page_number).
-#                  offset(page * page_number - page_number))
-#
-#     if order_by == "asc":
-#         statement = statement.order_by(asc(order))
-#     else:
-#         statement = statement.order_by(desc(order))
-#
-#     objs = await session.scalars(statement=statement)
-#     return [TagExtendedBookPrivateDTO.model_validate(obj=obj) for obj in objs.all()]
-
-
-
 @router.get(
     path="/books_private/{tag}",
     response_model=TagExtendedBookPrivateDTO,

@@ -12,10 +12,11 @@ from starlette.status import (
 )
 
 from api.annotated_types import PageQuery, PageNumberQuery, BookPrivateSortAttrQuery, SortByQuery, BookPrivateID
-from src.database import (BookPrivate,
-                          GeneralBook,
-                          Tag,
-                          User,
+from src.database import (
+    BookPrivate,
+    GeneralBook,
+    Tag,
+    User,
 )
 from src.dependencies.authenticate import authenticate, get_current_user
 from src.dependencies.database_session import (DBAsyncSession)

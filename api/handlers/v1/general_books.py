@@ -1,28 +1,24 @@
-from typing import Optional
-
-from fastapi import APIRouter, HTTPException, Query, Depends
-from sqlalchemy import select, asc, desc
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import joinedload, selectinload
-from starlette.status import (
-    HTTP_200_OK, HTTP_404_NOT_FOUND, HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_204_NO_CONTENT
-)
-
-from api.annotated_types import PageQuery, PageNumberQuery, BookPrivateSortAttrQuery, SortByQuery, BookPrivateID, \
-    GeneralBookSortAttrQuery, GeneralBookID
-from src.database import (BookPrivate,
-                          GeneralBook,
-                          Tag, BookPrivateTag, User)
-from src.dependencies.authenticate import authenticate, get_current_user
-from src.dependencies.database_session import (
-    DBAsyncSession
-)
-from src.types import GeneralBookExtendedDTO, BookPrivateDTO, GeneralBooksDTO
+from fastapi import APIRouter, HTTPException
 from sqlalchemy import select, asc, desc, delete, and_
-
 from sqlalchemy import event
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import selectinload
+from starlette.status import (
+    HTTP_200_OK,
+    HTTP_201_CREATED,
+    HTTP_400_BAD_REQUEST,
+    HTTP_204_NO_CONTENT,
+)
 
-from src.types.book_private import BookPrivateListDTO, BookPrivateCreateDTO, BookPrivateUpdateDTO
+from api.annotated_types import PageQuery, PageNumberQuery, SortByQuery, \
+    GeneralBookSortAttrQuery, GeneralBookID
+from src.database import (
+    GeneralBook,
+    Tag,
+)
+from src.dependencies.authenticate import authenticate
+from src.dependencies.database_session import (DBAsyncSession)
+from src.types import GeneralBooksDTO
 from src.types.general_books import GeneralBooksForPrivateDTO, GeneralBookCreateDTO, GeneralBookUpdateDTO
 
 router = APIRouter(tags=["GeneralBook"])
@@ -95,25 +91,6 @@ async def general_book_create(session: DBAsyncSession, data: GeneralBookCreateDT
         return GeneralBookCreateDTO.model_validate(obj=general_book)
 
 
-# @router.put(
-#     path="/general_books/{id}",
-#     status_code=HTTP_201_CREATED,
-#     response_model=GeneralBooksForPrivateDTO,
-#     dependencies=[authenticate],
-#     name="general-book-update"
-# )
-# async def general_book_update(session: DBAsyncSession, body: GeneralBookUpdateDTO, pk: GeneralBookID):
-#     obj = await session.get(entity=GeneralBook, ident=pk)
-#     for k, v in body:
-#         setattr(obj, k, v)
-#     try:
-#         await session.commit()
-#     except IntegrityError:
-#         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="GeneralBook name is not found")
-#     else:
-#         return GeneralBooksForPrivateDTO.model_validate(obj=obj)
-
-
 @router.put(
     path="/general_books/{id}",
     status_code=HTTP_200_OK,
@@ -180,3 +157,22 @@ async def general_book_update(session: DBAsyncSession, body: GeneralBookUpdateDT
 async def general_book_delete(session: DBAsyncSession, pk: GeneralBookID):
     await session.execute(delete(GeneralBook).filter(and_(GeneralBook.id == pk)))
     await session.commit()
+
+
+# @router.put(
+#     path="/general_books/{id}",
+#     status_code=HTTP_201_CREATED,
+#     response_model=GeneralBooksForPrivateDTO,
+#     dependencies=[authenticate],
+#     name="general-book-update"
+# )
+# async def general_book_update(session: DBAsyncSession, body: GeneralBookUpdateDTO, pk: GeneralBookID):
+#     obj = await session.get(entity=GeneralBook, ident=pk)
+#     for k, v in body:
+#         setattr(obj, k, v)
+#     try:
+#         await session.commit()
+#     except IntegrityError:
+#         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="GeneralBook name is not found")
+#     else:
+#         return GeneralBooksForPrivateDTO.model_validate(obj=obj)

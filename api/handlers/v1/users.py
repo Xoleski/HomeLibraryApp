@@ -1,28 +1,12 @@
-from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter
 from sqlalchemy import select, asc, desc
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import joinedload
-from starlette.status import (
-    HTTP_200_OK, HTTP_404_NOT_FOUND, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
-)
+from starlette.status import (HTTP_200_OK)
 
-from api.annotated_types import PageQuery, PageNumberQuery, BookPrivateSortAttrQuery, SortByQuery, UsersSortAttrQuery
-from src.database import (BookPrivate,
-                          GeneralBook,
-                          Tag,
-                          BookPrivateTag,
-                          User)
-from src.dependencies.authenticate import authenticate
-from src.dependencies.database_session import (
-    DBAsyncSession
-)
-from src.types import GeneralBookExtendedDTO, BookPrivateDTO, UserDTO
-
-from sqlalchemy import event
-
-from src.types.book_private import BookPrivateListDTO, BookPrivateCreateDTO
+from api.annotated_types import PageQuery, PageNumberQuery, SortByQuery, UsersSortAttrQuery
+from src.database import (User)
+from src.dependencies.database_session import (DBAsyncSession)
+from src.types import UserDTO
 
 router = APIRouter(tags=["User"])
 
