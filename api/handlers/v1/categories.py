@@ -120,7 +120,7 @@ async def category_detail(session: DBAsyncSession, slug: str):
         select(Category)
         .where(Category.slug == slug)
         .options(
-            joinedload(Category.general_books).subqueryload(GeneralBook.tags)
+            joinedload(Category.general_books).subqueryload(GeneralBook.tags_general)
         )
     )
     category = result.scalars().first()
