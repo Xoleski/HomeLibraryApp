@@ -49,7 +49,7 @@ def upgrade() -> None:
     sa.Column('title', sa.VARCHAR(length=128), nullable=False),
     sa.Column('slug', sa.VARCHAR(length=128), nullable=False),
     sa.Column('body', sa.VARCHAR(), nullable=False),
-    sa.Column('created_at', sa.TIMESTAMP(), server_default='now', nullable=False),
+    sa.Column('created_at', sa.TIMESTAMP(), server_default='now()', nullable=False),
     sa.Column('is_published', sa.BOOLEAN(), server_default='false', nullable=False),
     sa.Column('picture', src.database.types.FileType(), nullable=True),
     sa.Column('category_id', sa.INTEGER(), nullable=False),

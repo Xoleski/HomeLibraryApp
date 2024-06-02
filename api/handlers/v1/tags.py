@@ -1,11 +1,7 @@
-from celery.result import AsyncResult
-# from sqlite3 import IntegrityError
+from fastapi import APIRouter, HTTPException
 from sqlalchemy.exc import IntegrityError
-
-
-from fastapi import APIRouter, HTTPException, Path
 from sqlalchemy import select, asc, desc, delete, and_
-from sqlalchemy.orm import joinedload, validates
+from sqlalchemy.orm import joinedload
 from starlette.status import (
     HTTP_200_OK, HTTP_201_CREATED,
     HTTP_204_NO_CONTENT,
@@ -14,29 +10,22 @@ from starlette.status import (
 )
 
 from api.annotated_types import (
-    CategoryID,
     PageQuery,
     PageNumberQuery,
-    CategorySortAttrQuery,
-    SortByQuery, TagSortAttrQuery, TagID
+    SortByQuery,
+    TagSortAttrQuery,
+    TagID
 )
-from src.database import (Category,
-                          BookPrivate,
-                          GeneralBook, Tag)
+
+from src.database import (
+    BookPrivate,
+    Tag,
+)
 from src.dependencies.database_session import (
     DBAsyncSession
 )
 from src.dependencies.authenticate import authenticate
-from src.types import (
-    CategoryDTO,
-    CategoryCreateDTO,
-    CategoryUpdateDTO,
-    CategoryExtendedDTO
-)
-
-from src.tasks.tasks import foo
-from sqlalchemy import event
-
+from src.types.book_private import TagExtendedBookPrivateDTO
 from src.types.tag import TagDTO, TagCreateDTO, TagUpdateDTO
 
 router = APIRouter(tags=["Tag"])
@@ -121,3 +110,59 @@ async def tag_update(session: DBAsyncSession, body: TagUpdateDTO, pk: TagID):
 async def tag_delete(session: DBAsyncSession, pk: TagID):
     await session.execute(delete(Tag).filter(and_(Tag.id == pk)))
     await session.commit()
+
+
+
+# @router.get(
+#     path="/tag_books_private",
+#     response_model=TagExtendedBookPrivateDTO,
+#     status_code=HTTP_200_OK,
+#     response_description="List of books private",
+#     summary="Getting a list of books private for tag",
+#     name="tag_list_book_private"
+# )
+# async def tag_list_book_private(
+#         session: DBAsyncSession,
+#         page: PageQuery = 1,
+#         page_number: PageNumberQuery = 25,
+#         order: TagSortAttrQuery = "id",
+#         order_by: SortByQuery = "asc",
+#         tag: Optional[str] = Query(None, alias='tag')
+# ):
+#     tag_id = (select(Tag).where(Tag.name == tag))
+#
+#     statement = (select(BookPrivate).
+#                  where(BookPrivate.id == tag_id).
+#                  limit(page_number).
+#                  offset(page * page_number - page_number))
+#
+#     if order_by == "asc":
+#         statement = statement.order_by(asc(order))
+#     else:
+#         statement = statement.order_by(desc(order))
+#
+#     objs = await session.scalars(statement=statement)
+#     return [TagExtendedBookPrivateDTO.model_validate(obj=obj) for obj in objs.all()]
+
+
+
+@router.get(
+    path="/books_private/{tag}",
+    response_model=TagExtendedBookPrivateDTO,
+    status_code=HTTP_200_OK,
+    name="tag-detail"
+)
+async def tag_detail(session: DBAsyncSession, tag: str):
+    result = await session.execute(
+        select(Tag)
+        .where(Tag.name == tag)
+        .options(
+            joinedload(Tag.books_private).subqueryload(BookPrivate.tags_private)
+        )
+    )
+    book = result.scalars().first()
+    print(book)
+
+    if book is None:
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail=f"tag {tag} does not exist")
+    return TagExtendedBookPrivateDTO.model_validate(obj=book)

@@ -8,7 +8,9 @@ from sqlalchemy import (Column,
                         ForeignKey,
                         CheckConstraint,
                         PrimaryKeyConstraint,
-                        ForeignKeyConstraint, TIMESTAMP, CHAR)
+                        ForeignKeyConstraint,
+                        TIMESTAMP,
+                        CHAR)
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import INTERVAL
 from sqlalchemy.sql.functions import now
@@ -36,13 +38,6 @@ import unicodedata
 
 
 def slugify(value, allow_unicode=False):
-    """
-    Convert to ASCII if 'allow_unicode' is False. Convert spaces or repeated
-    dashes to single dashes. Remove characters that aren't alphanumerics,
-    underscores, or hyphens. Convert to lowercase. Also strip leading and
-    trailing whitespace, dashes, and underscores. Additionally, transliterate
-    Cyrillic characters to Latin.
-    """
     # Transliterate Cyrillic to Latin
     value = translit(value, 'ru', reversed=True)
 
@@ -106,15 +101,13 @@ class Category(Base):
         print(self.slug)
 
 
-
-
 class Tag(Base):
     __tablename__ = "tags"
 
     id = Column(INT, primary_key=True)
     name = Column(VARCHAR(length=32), nullable=False, unique=True)
 
-    general_books = relationship(argument="GeneralBook", secondary=GeneralBookTag.__table__, back_populates="tags")
+    general_books = relationship(argument="GeneralBook", secondary=GeneralBookTag.__table__, back_populates="tags_general")
     books_private = relationship(argument="BookPrivate", secondary=BookPrivateTag.__table__, back_populates="tags_private")
 
     def __str__(self) -> str:
@@ -128,7 +121,7 @@ class BookPrivate(Base):
     title = Column(VARCHAR(length=128), nullable=False)
     slug = Column(VARCHAR(length=128), nullable=True)
     author = Column(VARCHAR(length=128), nullable=False)
-    created_at = Column(TIMESTAMP, server_default="now", nullable=False)
+    created_at = Column(TIMESTAMP, server_default="now()", nullable=False)
     is_published = Column(BOOLEAN, server_default="false", nullable=False)
     picture = Column(FileType(storage=FileSystemStorage(upload_to="media")), nullable=True, default='blank.png')
     category_id = Column(
@@ -156,7 +149,6 @@ class BookPrivate(Base):
         return self.title
 
     def generate_slug(self):
-        # Assuming you have a utility function `slugify` that converts strings to slugs
         self.slug = slugify(self.title)
         print(f"Generated slug: {self.slug}")
 
@@ -184,7 +176,7 @@ class GeneralBook(Base):
     title = Column(VARCHAR(length=128), nullable=True)
     slug = Column(VARCHAR(length=128), nullable=False, unique=True)
     author = Column(VARCHAR(length=128), nullable=True)
-    created_at = Column(TIMESTAMP, server_default="now", nullable=False)
+    created_at = Column(TIMESTAMP, server_default="now()", nullable=False)
     is_published = Column(BOOLEAN, server_default="false", nullable=False)
     picture = Column(FileType(storage=FileSystemStorage(upload_to="media")), nullable=True, default='blank.png')
     category_id = Column(
@@ -195,13 +187,11 @@ class GeneralBook(Base):
 
     books_private = relationship(argument=BookPrivate, back_populates="general_book")
     category = relationship(argument=Category, back_populates="general_books")
-    tags = relationship(argument=Tag, secondary=GeneralBookTag.__table__, back_populates="general_books")
+    tags_general = relationship(argument=Tag, secondary=GeneralBookTag.__table__, back_populates="general_books")
 
     def __str__(self) -> str:
         return self.title
 
     def generate_slug(self):
-        # Assuming you have a utility function `slugify` that converts strings to slugs
         self.slug = slugify(self.title)
         print(f"Generated slug: {self.slug}")
-

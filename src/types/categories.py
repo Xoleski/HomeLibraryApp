@@ -1,6 +1,5 @@
 from pydantic import Field, PositiveInt
 
-from .book_private import BookPrivateDTO
 from .base import DTO
 from .general_books import GeneralBooksDTO
 

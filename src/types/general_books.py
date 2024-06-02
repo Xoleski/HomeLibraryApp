@@ -1,17 +1,15 @@
 from datetime import datetime
+from pydantic import PositiveInt, Field, conlist
 from typing import Optional
 
-from pydantic import PositiveInt, Field
-
-from .book_private import BookPrivateDTO, BookPrivateListDTO
+from .book_private import BookPrivateListDTO
 from .base import DTO
-
 from .tag import TagDTO
 
 __all__ = (
     "GeneralBooksDTO",
     "GeneralBookExtendedDTO",
-    "GeneralBooksIdDTO",
+    "GeneralBookUpdateDTO",
 )
 
 
@@ -20,26 +18,22 @@ class GeneralBookCreateDTO(DTO):
     slug: str | None = None
     author: str | None = None
     category_id: PositiveInt
+    tags: Optional[conlist(int)] = None  # Список ID тегов
 
 
-class GeneralBooksIdDTO(GeneralBookCreateDTO):
-    id: PositiveInt
-
-
-class GeneralBooksForPrivateDTO(GeneralBooksIdDTO):
-    created_at: datetime
+class GeneralBookUpdateDTO(GeneralBookCreateDTO):
     is_published: bool
-    # tags: list[TagDTO] = None
     picture: Optional[str] = Field(default=None)
 
 
+class GeneralBooksForPrivateDTO(GeneralBookUpdateDTO):
+    id: PositiveInt
+    created_at: datetime
+
+
 class GeneralBooksDTO(GeneralBooksForPrivateDTO):
-    tags: list[TagDTO] = None
+    tags_general: list[TagDTO] = None
 
 
 class GeneralBookExtendedDTO(GeneralBooksForPrivateDTO):
     books_private: list[BookPrivateListDTO]
-
-
-class GeneralBookUpdateDTO(GeneralBookCreateDTO):
-    ...

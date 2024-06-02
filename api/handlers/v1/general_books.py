@@ -3,7 +3,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Query, Depends
 from sqlalchemy import select, asc, desc
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload, selectinload
 from starlette.status import (
     HTTP_200_OK, HTTP_404_NOT_FOUND, HTTP_201_CREATED, HTTP_400_BAD_REQUEST, HTTP_204_NO_CONTENT
 )
@@ -30,13 +30,13 @@ router = APIRouter(tags=["GeneralBook"])
 
 @router.get(
     path="/general_books_all",
-    response_model=list[GeneralBooksForPrivateDTO],
+    response_model=list[GeneralBooksDTO],
     status_code=HTTP_200_OK,
-    response_description="List of books_private",
-    summary="Getting a list of books_private",
-    name="book-private-all"
+    response_description="List of general books",
+    summary="Getting a list of general books",
+    name="general-books-all"
 )
-async def book_private_all(
+async def general_books_all(
         session: DBAsyncSession,
         page: PageQuery = 1,
         page_number: PageNumberQuery = 25,
@@ -45,6 +45,9 @@ async def book_private_all(
 ):
     statement = (
         select(GeneralBook)
+        .options(
+            selectinload(GeneralBook.tags_general)
+        )
         .limit(page_number)
         .offset(page * page_number - page_number)
     )
@@ -55,7 +58,7 @@ async def book_private_all(
         statement = statement.order_by(desc(order))
 
     objs = await session.scalars(statement=statement)
-    return [GeneralBooksForPrivateDTO.model_validate(obj=obj) for obj in objs.all()]
+    return [GeneralBooksDTO.model_validate(obj=obj) for obj in objs.all()]
 
 
 @event.listens_for(GeneralBook, 'before_insert')
@@ -71,11 +74,16 @@ def before_insert_listener(mapper, connection, target: GeneralBook):
     response_description="Detail of general book",
     summary="Creating a new general book",
     dependencies=[authenticate],
-    name="book-private-create"
+    name="general-book-create"
 )
-async def books_private_create(session: DBAsyncSession, data: GeneralBookCreateDTO):
-    general_book = GeneralBook(**data.model_dump())
+async def general_book_create(session: DBAsyncSession, data: GeneralBookCreateDTO):
+    general_book = GeneralBook(**data.model_dump(exclude={"tags"}))
     print(f"Creating general book with data: {data}")
+    if data.tags:
+        tags = await session.execute(select(Tag).where(Tag.id.in_(data.tags)))
+        general_book.tags_general = tags.scalars().all()
+        print(tags, "tags")
+
     session.add(instance=general_book)
     try:
         await session.commit()
@@ -87,19 +95,76 @@ async def books_private_create(session: DBAsyncSession, data: GeneralBookCreateD
         return GeneralBookCreateDTO.model_validate(obj=general_book)
 
 
+# @router.put(
+#     path="/general_books/{id}",
+#     status_code=HTTP_201_CREATED,
+#     response_model=GeneralBooksForPrivateDTO,
+#     dependencies=[authenticate],
+#     name="general-book-update"
+# )
+# async def general_book_update(session: DBAsyncSession, body: GeneralBookUpdateDTO, pk: GeneralBookID):
+#     obj = await session.get(entity=GeneralBook, ident=pk)
+#     for k, v in body:
+#         setattr(obj, k, v)
+#     try:
+#         await session.commit()
+#     except IntegrityError:
+#         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="GeneralBook name is not found")
+#     else:
+#         return GeneralBooksForPrivateDTO.model_validate(obj=obj)
+
+
 @router.put(
     path="/general_books/{id}",
-    status_code=HTTP_201_CREATED,
+    status_code=HTTP_200_OK,
     response_model=GeneralBooksForPrivateDTO,
     dependencies=[authenticate],
     name="general-book-update"
 )
 async def general_book_update(session: DBAsyncSession, body: GeneralBookUpdateDTO, pk: GeneralBookID):
-    obj = await session.get(entity=GeneralBook, ident=pk)
-    for k, v in body:
+    obj = await session.get(
+        entity=GeneralBook,
+        ident=pk,
+        options=[selectinload(GeneralBook.tags_general)],
+        with_for_update=True
+    )
+
+    for k, v in body.model_dump(exclude={"tags"}).items():
         setattr(obj, k, v)
+
+    if body.tags is not None:
+        current_tag_ids = {tag.id for tag in obj.tags_general}
+        print("current_tag_ids", current_tag_ids)
+        new_tag_ids = set(body.tags)
+        print("new_tag_ids", new_tag_ids)
+
+        # Теги для добавления
+        tags_to_add = new_tag_ids - current_tag_ids
+        print("tags_to_add", tags_to_add)
+
+        # Теги для удаления
+        tags_to_remove = current_tag_ids - new_tag_ids
+        print("tags_to_remove", tags_to_remove)
+
+        if tags_to_add:
+            print("ADD to")
+            tags_result = await session.execute(select(Tag).where(Tag.id.in_(tags_to_add)))
+            tags_to_add_objs = tags_result.scalars().all()
+            for tag in tags_to_add_objs:
+                obj.tags_general.append(tag)
+
+        if tags_to_remove:
+            print("REMOVE to")
+            tags_to_remove_objs = [tag for tag in obj.tags_general if tag.id in tags_to_remove]
+            for tag in tags_to_remove_objs:
+                obj.tags_general.remove(tag)
+    else:
+        obj.tags_general = []
+        ...
+
     try:
         await session.commit()
+        # await session.refresh(obj)
     except IntegrityError:
         raise HTTPException(status_code=HTTP_400_BAD_REQUEST, detail="GeneralBook name is not found")
     else:

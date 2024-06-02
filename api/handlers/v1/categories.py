@@ -1,5 +1,4 @@
 from celery.result import AsyncResult
-# from sqlite3 import IntegrityError
 from sqlalchemy.exc import IntegrityError
 
 
@@ -21,7 +20,6 @@ from api.annotated_types import (
     SortByQuery
 )
 from src.database import (Category,
-                          BookPrivate,
                           GeneralBook)
 from src.dependencies.database_session import (
     DBAsyncSession
@@ -36,7 +34,6 @@ from src.types import (
 
 from src.tasks.tasks import foo
 from sqlalchemy import event
-
 
 router = APIRouter(tags=["Category"])
 
@@ -87,7 +84,6 @@ def before_insert_listener(mapper, connection, target: Category):
     # target.to_lowercase()
     if not target.slug:
         target.generate_slug()
-
 
 
 @router.post(
@@ -163,6 +159,3 @@ async def category_update(session: DBAsyncSession, body: CategoryUpdateDTO, pk: 
 async def category_delete(session: DBAsyncSession, pk: CategoryID):
     await session.execute(delete(Category).filter(and_(Category.id == pk)))
     await session.commit()
-
-
-
