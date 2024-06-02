@@ -2,6 +2,7 @@ from typing import Self
 
 from pydantic import EmailStr, PositiveInt, model_validator
 
+from .book_private import BookPrivateDTO, BookPrivateListDTO
 from .annotated_types import PasswordStr
 
 from .base import DTO
@@ -31,3 +32,7 @@ class UserRegisterDTO(UserLoginDTO):
 class UserDTO(DTO):
     id: PositiveInt
     email: EmailStr
+
+
+class UserBooksExtendedDTO(UserDTO):
+    books_private: list[BookPrivateListDTO]
