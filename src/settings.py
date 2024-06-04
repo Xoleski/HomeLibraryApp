@@ -1,7 +1,8 @@
 from datetime import timedelta
 from pathlib import Path
+from typing import Optional, Self
 
-from pydantic import PostgresDsn, SecretStr, HttpUrl, RedisDsn
+from pydantic import PostgresDsn, SecretStr, HttpUrl, RedisDsn, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
@@ -11,7 +12,7 @@ from src.utils.jwt import JWTManager
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         case_sensitive=False,
-        frozen=True,
+        frozen=False,
         # env_file=".env"
     )
 
@@ -33,10 +34,27 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_ID: SecretStr
     GOOGLE_CLIENT_SECRET: SecretStr
     GOOGLE_REDIRECT_URI: HttpUrl
+    GOOGLE_LOGIN_URL: Optional[HttpUrl] = None
 
     CELERY_BROKER_URL: RedisDsn
     CELERY_RESULT_BACKEND: RedisDsn
     CELERY_RESULT_EXTENDED: bool
+    
+    @model_validator(mode="after")
+    def create_goggle_login_url(self) -> Self:
+        if self.GOOGLE_LOGIN_URL is None:
+            # self.GOOGLE_LOGIN_URL = HttpUrl.build(
+            #     scheme="https",
+            #     host="accounts.google.com",
+            #     path="/o/oauth2/auth",
+            #     query=f"?response_type=code&client_id={self.GOOGLE_CLIENT_ID.get_secret_value()}"
+            #           f"&redirect_uri={self.GOOGLE_REDIRECT_URI}&scope=openid%20profile%20email&access_type=offline"
+            # )
+            self.GOOGLE_LOGIN_URL = (
+                f"https://accounts.google.com/o/oauth2/auth?response_type=code"
+                f"&client_id={self.GOOGLE_CLIENT_ID.get_secret_value()}"
+                f"&redirect_uri={self.GOOGLE_REDIRECT_URI}&scope=openid%20profile%20email&access_type=offline"
+)
 
 
 settings = Settings()

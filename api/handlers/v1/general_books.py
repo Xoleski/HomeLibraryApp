@@ -1,31 +1,35 @@
-from fastapi import APIRouter, HTTPException
+from typing import Optional
+
+from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import select, asc, desc, delete, and_
 from sqlalchemy import event
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import selectinload
+from sqlalchemy.orm import selectinload, joinedload
 from starlette.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
     HTTP_400_BAD_REQUEST,
-    HTTP_204_NO_CONTENT,
+    HTTP_204_NO_CONTENT, HTTP_404_NOT_FOUND,
 )
 
 from api.annotated_types import PageQuery, PageNumberQuery, SortByQuery, \
-    GeneralBookSortAttrQuery, GeneralBookID
+    GeneralBookSortAttrQuery, GeneralBookID, BookPrivateSortAttrQuery
 from src.database import (
     GeneralBook,
-    Tag,
+    Tag, BookPrivate,
 )
 from src.dependencies.authenticate import authenticate
 from src.dependencies.database_session import (DBAsyncSession)
 from src.types import GeneralBooksDTO
-from src.types.general_books import GeneralBooksForPrivateDTO, GeneralBookCreateDTO, GeneralBookUpdateDTO
+from src.types.general_books import GeneralBooksForPrivateDTO, GeneralBookCreateDTO, GeneralBookUpdateDTO, \
+    GeneralBookExtendedDTO
+from src.utils.slugify import slugify
 
 router = APIRouter(tags=["GeneralBook"])
 
 
 @router.get(
-    path="/general_books_all",
+    path="/general_books",
     response_model=list[GeneralBooksDTO],
     status_code=HTTP_200_OK,
     response_description="List of general books",
@@ -54,13 +58,14 @@ async def general_books_all(
         statement = statement.order_by(desc(order))
 
     objs = await session.scalars(statement=statement)
-    return [GeneralBooksDTO.model_validate(obj=obj) for obj in objs.all()]
+    return [GeneralBooksDTO.model_validate(obj=obj) for obj in objs]
 
 
-@event.listens_for(GeneralBook, 'before_insert')
-def before_insert_listener(mapper, connection, target: GeneralBook):
-    if not target.slug:
-        target.generate_slug()
+# @event.listens_for(GeneralBook, 'before_insert')
+# def before_insert_listener(mapper, connection, target: GeneralBook):
+#     if not target.slug:
+#         target.slug = slugify(value=target.title)
+#         print(f"Generated slug: {target.slug}")
 
 
 @router.post(
@@ -76,8 +81,10 @@ async def general_book_create(session: DBAsyncSession, data: GeneralBookCreateDT
     general_book = GeneralBook(**data.model_dump(exclude={"tags"}))
     print(f"Creating general book with data: {data}")
     if data.tags:
-        tags = await session.execute(select(Tag).where(Tag.id.in_(data.tags)))
-        general_book.tags_general = tags.scalars().all()
+        tags = await session.scalars(select(Tag).where(Tag.id.in_(data.tags)))
+        if len(data.tags) != len(tags.all()):
+            raise ValueError("Передан невалидный тэг")
+        general_book.tags_general = tags.scalarsall()
         print(tags, "tags")
 
     session.add(instance=general_book)
@@ -103,7 +110,6 @@ async def general_book_update(session: DBAsyncSession, body: GeneralBookUpdateDT
         entity=GeneralBook,
         ident=pk,
         options=[selectinload(GeneralBook.tags_general)],
-        with_for_update=True
     )
 
     for k, v in body.model_dump(exclude={"tags"}).items():

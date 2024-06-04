@@ -2,15 +2,16 @@ from typing import Self
 
 from pydantic import EmailStr, PositiveInt, model_validator
 
-from .book_private import BookPrivateDTO, BookPrivateListDTO
+from .book_private import BookPrivateListDTO
 from .annotated_types import PasswordStr
 
 from .base import DTO
 
-__all__ =[
+__all__ = [
     "UserRegisterDTO",
     "UserLoginDTO",
     "UserDTO",
+    "UserBooksExtendedDTO",
 ]
 
 

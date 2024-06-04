@@ -1,33 +1,43 @@
-from typing import Optional
 from fastapi import APIRouter, HTTPException, Query, Depends
+from sqlalchemy import select, asc, desc, delete, and_, event
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload, selectinload
-from sqlalchemy import select, asc, desc, delete, and_
-from sqlalchemy import event
 from starlette.status import (
     HTTP_200_OK, HTTP_404_NOT_FOUND,
     HTTP_201_CREATED,
     HTTP_400_BAD_REQUEST,
     HTTP_204_NO_CONTENT
 )
+from typing import Optional
 
-from api.annotated_types import PageQuery, PageNumberQuery, BookPrivateSortAttrQuery, SortByQuery, BookPrivateID
+from api.annotated_types import (
+    PageQuery,
+    PageNumberQuery,
+    BookPrivateSortAttrQuery,
+    SortByQuery,
+    BookPrivateID
+)
 from src.database import (
     BookPrivate,
     GeneralBook,
     Tag,
     User,
 )
-from src.dependencies.authenticate import authenticate, get_current_user
-from src.dependencies.database_session import (DBAsyncSession)
+from src.dependencies.authenticate import authenticate, get_current_user, CurrentUser
+from src.dependencies.database_session import DBAsyncSession
 from src.types import GeneralBookExtendedDTO, BookPrivateDTO
-from src.types.book_private import BookPrivateListDTO, BookPrivateUpdateDTO, BookPrivateCreateDTO
+from src.types.book_private import (
+    BookPrivateListDTO,
+    BookPrivateUpdateDTO,
+    BookPrivateCreateDTO
+)
+from src.utils.slugify import slugify
 
 router = APIRouter(tags=["BookPrivate"])
 
 
 @router.get(
-    path="/books_private_list",
+    path="/books_private/{slug}",
     response_model=GeneralBookExtendedDTO,
     status_code=HTTP_200_OK,
     response_description="List of books_private",
@@ -45,16 +55,21 @@ async def book_private_list(
         # order: str = Query("id", alias='order'),
         # order_by: str = Query("asc", alias='order_by'),
         title: Optional[str] = Query(None, alias='title'),
-        author: Optional[str] = Query(None, alias='author')
+        author: Optional[str] = Query(None, alias='author'),
 ):
-    result = await session.execute(
+    result = await session.scalar(
         select(GeneralBook)
-        .where(GeneralBook.title == title and GeneralBook.author == author)
+        .filter(
+            and_(
+                GeneralBook.title == title,
+                GeneralBook.author == author
+            )
+        )
         .options(
             joinedload(GeneralBook.books_private).subqueryload(BookPrivate.tags_private)
         )
     )
-    book_private = result.scalars().first()
+    book_private = result
     print(book_private)
 
     if book_private is None:
@@ -62,10 +77,11 @@ async def book_private_list(
     return GeneralBookExtendedDTO.model_validate(obj=book_private)
 
 
-@event.listens_for(BookPrivate, 'before_insert')
-def before_insert_listener(mapper, connection, target: BookPrivate):
-    if not target.slug:
-        target.generate_slug()
+# @event.listens_for(BookPrivate, 'before_insert')
+# def before_insert_listener(mapper, connection, target: BookPrivate):
+#     if not target.slug:
+#         target.slug = slugify(value=target.title)
+#         print(f"Generated slug: {target.slug}")
 
 
 @router.post(
@@ -77,15 +93,21 @@ def before_insert_listener(mapper, connection, target: BookPrivate):
     dependencies=[authenticate],
     name="book-private-create"
 )
-async def books_private_create(session: DBAsyncSession, data: BookPrivateCreateDTO, current_user: User = Depends(get_current_user)):
+async def books_private_create(
+        session: DBAsyncSession,
+        data: BookPrivateCreateDTO,
+        current_user: CurrentUser
+):
     book_private = BookPrivate(**data.model_dump(exclude={"tags"}))
     book_private.user_email = current_user.email
     print(f"Creating your book with data: {data}")
     print(f"Creating your book with user: {current_user}")
     if data.tags:
-        tags = await session.execute(select(Tag).where(Tag.id.in_(data.tags)))
-        book_private.tags_private = tags.scalars().all()
-        print(tags, "tags")
+        tags = await session.scalars(select(Tag).where(Tag.id.in_(data.tags)))
+        if len(data.tags) != len(tags.all()):
+            raise ValueError("Передан невалидный тэг")
+        tags = await session.scalars(select(Tag).where(Tag.id.in_(data.tags)))
+        book_private.tags_private = tags.all()
 
     session.add(instance=book_private)
     try:
@@ -99,7 +121,7 @@ async def books_private_create(session: DBAsyncSession, data: BookPrivateCreateD
 
 
 @router.get(
-    path="/books_private_all",
+    path="/books_private",
     response_model=list[BookPrivateListDTO],
     status_code=HTTP_200_OK,
     response_description="List of books_private",
@@ -128,7 +150,7 @@ async def book_private_all(
         statement = statement.order_by(desc(order))
 
     objs = await session.scalars(statement=statement)
-    return [BookPrivateListDTO.model_validate(obj=obj) for obj in objs.all()]
+    return [BookPrivateListDTO.model_validate(obj=obj) for obj in objs]
 
 
 @router.put(
@@ -143,7 +165,6 @@ async def book_private_update(session: DBAsyncSession, body: BookPrivateUpdateDT
         entity=BookPrivate,
         ident=pk,
         options=[selectinload(BookPrivate.tags_private)],
-        with_for_update=True
     )
 
     for k, v in body.model_dump(exclude={"tags"}).items():
@@ -165,8 +186,8 @@ async def book_private_update(session: DBAsyncSession, body: BookPrivateUpdateDT
 
         if tags_to_add:
             print("ADD to")
-            tags_result = await session.execute(select(Tag).where(Tag.id.in_(tags_to_add)))
-            tags_to_add_objs = tags_result.scalars().all()
+            tags_result = await session.scalars(select(Tag).where(Tag.id.in_(tags_to_add)))
+            tags_to_add_objs = tags_result.all()
             for tag in tags_to_add_objs:
                 obj.tags_private.append(tag)
 

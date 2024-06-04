@@ -1,10 +1,12 @@
-from pydantic import PositiveInt
+from typing import Optional
+
+from pydantic import PositiveInt, Field
 
 from .base import DTO
 
 
 class TagCreateDTO(DTO):
-    name: str
+    name: Optional[str] = None
 
 
 class TagDTO(TagCreateDTO):

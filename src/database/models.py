@@ -1,64 +1,55 @@
-from sqlalchemy import (Column,
-                        INT,
-                        event,
-                        BOOLEAN,
-                        Table,
-                        VARCHAR,
-                        func,
-                        ForeignKey,
-                        CheckConstraint,
-                        PrimaryKeyConstraint,
-                        ForeignKeyConstraint,
-                        TIMESTAMP,
-                        CHAR)
+from datetime import datetime
+
+from sqlalchemy import (
+    Column,
+    INT,
+    event,
+    BOOLEAN,
+    Table,
+    VARCHAR,
+    func,
+    ForeignKey,
+    CheckConstraint,
+    PrimaryKeyConstraint,
+    ForeignKeyConstraint,
+    TIMESTAMP,
+    CHAR
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import INTERVAL
 from sqlalchemy.sql.functions import now
 
-from .base import Base
-from .types import FileType
-from .storage import FileSystemStorage
+from src.database.base import Base
+from src.database.types import FileType
+from src.database.storage import FileSystemStorage
+from src.utils.slugify import slugify
 
-from transliterate import translit
-
-
-__all__ = (
+__all__ = [
     "Base",
     "BookPrivate",
     "BookPrivateTag",
     "Category",
-    "User",
-    "Tag",
     "GeneralBook",
     "GeneralBookTag",
-)
-
-import re
-import unicodedata
-
-
-def slugify(value, allow_unicode=False):
-    # Transliterate Cyrillic to Latin
-    value = translit(value, 'ru', reversed=True)
-
-    if allow_unicode:
-        value = unicodedata.normalize('NFKC', value)
-    else:
-        value = unicodedata.normalize('NFKD', value).encode('ascii', 'ignore').decode('ascii')
-    value = re.sub(r'[^\w\s-]', '', value.lower())
-    return re.sub(r'[-\s]+', '-', value).strip('-_')
+    "User",
+    "Tag",
+]
 
 
 class BookPrivateTag(Base):
     __tablename__ = "book_private_tags"
 
-    tag_id = Column(ForeignKey(
-        "tags.id", ondelete="RESTRICT", onupdate="CASCADE"),
+    tag_id = Column(
+        ForeignKey(
+            column="tags.id", ondelete="CASCADE", onupdate="CASCADE"
+        ),
         nullable=False,
         primary_key=True
     )
-    book_private_id = Column(ForeignKey(
-        "books_private.id", ondelete="RESTRICT", onupdate="CASCADE"),
+    book_private_id = Column(
+        ForeignKey(
+            column="books_private.id", ondelete="CASCADE", onupdate="CASCADE"
+        ),
         nullable=False,
         primary_key=True
     )
@@ -67,13 +58,17 @@ class BookPrivateTag(Base):
 class GeneralBookTag(Base):
     __tablename__ = "general_books_tags"
 
-    tag_id = Column(ForeignKey(
-        "tags.id", ondelete="RESTRICT", onupdate="CASCADE"),
+    tag_id = Column(
+        ForeignKey(
+            column="tags.id", ondelete="CASCADE", onupdate="CASCADE"
+        ),
         nullable=False,
         primary_key=True
     )
-    general_book_id = Column(ForeignKey(
-        "general_books.id", ondelete="RESTRICT", onupdate="CASCADE"),
+    general_book_id = Column(
+        ForeignKey(
+            column="general_books.id", ondelete="CASCADE", onupdate="CASCADE"
+        ),
         nullable=False,
         primary_key=True
     )
@@ -95,19 +90,34 @@ class Category(Base):
     def __str__(self) -> str:
         return self.name
 
-    def generate_slug(self):
-        self.slug = slugify(self.name)
-        print(self.slug)
+
+@event.listens_for(Category, 'before_insert')
+def before_insert_listener(mapper, connection, target: Category):
+    # target.to_lowercase()
+    if not target.slug:
+        target.slug = slugify(value=target.name)
+        print(f"Generated slug: {target.slug}")
 
 
 class Tag(Base):
     __tablename__ = "tags"
+    __table_args__ = (
+        CheckConstraint(sqltext="length(name) >= 2"),
+    )
 
     id = Column(INT, primary_key=True)
     name = Column(VARCHAR(length=32), nullable=False, unique=True)
 
-    general_books = relationship(argument="GeneralBook", secondary=GeneralBookTag.__table__, back_populates="tags_general")
-    books_private = relationship(argument="BookPrivate", secondary=BookPrivateTag.__table__, back_populates="tags_private")
+    general_books = relationship(
+        argument="GeneralBook",
+        secondary=GeneralBookTag.__table__,
+        back_populates="tags_general"
+    )
+    books_private = relationship(
+        argument="BookPrivate",
+        secondary=BookPrivateTag.__table__,
+        back_populates="tags_private"
+    )
 
     def __str__(self) -> str:
         return self.name
@@ -115,14 +125,22 @@ class Tag(Base):
 
 class BookPrivate(Base):
     __tablename__ = "books_private"
+    __table_args__ = (
+        CheckConstraint(sqltext="length(title) >= 2"),
+        CheckConstraint(sqltext="length(author) >= 2"),
+    )
 
     id = Column(INT, primary_key=True)
     title = Column(VARCHAR(length=128), nullable=False)
-    slug = Column(VARCHAR(length=128), nullable=True)
+    slug = Column(VARCHAR(length=128), nullable=False, unique=True)
     author = Column(VARCHAR(length=128), nullable=False)
-    created_at = Column(TIMESTAMP, server_default="now()", nullable=False)
-    is_published = Column(BOOLEAN, server_default="false", nullable=False)
-    picture = Column(FileType(storage=FileSystemStorage(upload_to="media")), nullable=True, default='blank.png')
+    created_at = Column(TIMESTAMP, default=datetime.now, server_default="now", nullable=False)
+    is_published = Column(BOOLEAN, default=False, server_default="false", nullable=False)
+    picture = Column(FileType(
+        storage=FileSystemStorage(upload_to="media")),
+        nullable=True,
+        default='blank.png'
+    )
     category_id = Column(
         INT,
         ForeignKey(column=Category.id, ondelete="RESTRICT", onupdate="CASCADE"),
@@ -131,11 +149,11 @@ class BookPrivate(Base):
     general_book_id = Column(
         INT,
         ForeignKey(column="general_books.id", ondelete="RESTRICT", onupdate="CASCADE"),
-        nullable=True
+        nullable=False
     )
-    user_email = Column(
-        VARCHAR(length=128),
-        ForeignKey(column="users.email", ondelete="RESTRICT", onupdate="CASCADE"),
+    user_id = Column(
+        INT,
+        ForeignKey(column="users.id", ondelete="RESTRICT", onupdate="CASCADE"),
         nullable=True
     )
 
@@ -147,9 +165,17 @@ class BookPrivate(Base):
     def __str__(self) -> str:
         return self.title
 
-    def generate_slug(self):
-        self.slug = slugify(self.title)
-        print(f"Generated slug: {self.slug}")
+    @property
+    def user_email_(self) -> str:
+        if self.user:
+            return self.user.email
+
+
+@event.listens_for(BookPrivate, 'before_insert')
+def before_insert_listener(mapper, connection, target: BookPrivate):
+    if not target.slug:
+        target.slug = slugify(value=target.title)
+        print(f"Generated slug: {target.slug}")
 
 
 class User(Base):
@@ -170,14 +196,22 @@ class User(Base):
 
 class GeneralBook(Base):
     __tablename__ = "general_books"
+    __table_args__ = (
+        CheckConstraint(sqltext="length(title) >= 2"),
+        CheckConstraint(sqltext="length(author) >= 2"),
+    )
 
     id = Column(INT, primary_key=True)
-    title = Column(VARCHAR(length=128), nullable=True)
+    title = Column(VARCHAR(length=128), nullable=False)
     slug = Column(VARCHAR(length=128), nullable=False, unique=True)
-    author = Column(VARCHAR(length=128), nullable=True)
-    created_at = Column(TIMESTAMP, server_default="now()", nullable=False)
-    is_published = Column(BOOLEAN, server_default="false", nullable=False)
-    picture = Column(FileType(storage=FileSystemStorage(upload_to="media")), nullable=True, default='blank.png')
+    author = Column(VARCHAR(length=128), nullable=False)
+    created_at = Column(TIMESTAMP, default=datetime.now, server_default="now", nullable=False)
+    is_published = Column(BOOLEAN, default=False, server_default="false", nullable=False)
+    picture = Column(FileType(
+        storage=FileSystemStorage(upload_to="media")),
+        nullable=True,
+        default='blank.png'
+    )
     category_id = Column(
         INT,
         ForeignKey(column=Category.id, ondelete="RESTRICT", onupdate="CASCADE"),
@@ -191,6 +225,9 @@ class GeneralBook(Base):
     def __str__(self) -> str:
         return self.title
 
-    def generate_slug(self):
-        self.slug = slugify(self.title)
-        print(f"Generated slug: {self.slug}")
+
+@event.listens_for(GeneralBook, 'before_insert')
+def before_insert_listener(mapper, connection, target: GeneralBook):
+    if not target.slug:
+        target.slug = slugify(value=target.title)
+        print(f"Generated slug: {target.slug}")

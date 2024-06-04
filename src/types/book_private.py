@@ -1,27 +1,27 @@
 from datetime import datetime
-from pydantic import PositiveInt, Field, conlist
+from pydantic import PositiveInt, Field
 from typing import Optional
 
-from .base import DTO
-from .tag import TagDTO
+from src.types.base import DTO
+from src.types.tag import TagDTO
 
-__all__ = (
+__all__ = [
     "BookPrivateDTO",
     "BookPrivateCreateDTO",
     "BookPrivateExtendedDTO",
     "BookPrivateListDTO",
     "BookPrivateUpdateDTO",
     "TagExtendedBookPrivateDTO",
-)
+]
 
 
 class BookPrivateCreateDTO(DTO):
-    title: str = Field(min_length=2, max_length=128)
-    slug: str | None = None
+    title: str = Field(min_length=2, max_length=128)  # может быть не уникальным
+    slug: Optional[str] = None
     author: str = Field(min_length=2, max_length=128)
     category_id: PositiveInt
     general_book_id: Optional[PositiveInt] = None
-    tags: Optional[conlist(int)] = None  # Список ID тегов
+    tags: Optional[list[int]] = None  # Список ID тегов (conlist - можно добавить проверку на уникальность)
 
 
 class BookPrivateUpdateDTO(BookPrivateCreateDTO):
@@ -32,7 +32,7 @@ class BookPrivateUpdateDTO(BookPrivateCreateDTO):
 class BookPrivateDTO(BookPrivateUpdateDTO):
     id: PositiveInt
     created_at: datetime
-    user_email: str = Field(min_length=2, max_length=128)
+    user_id: Optional[PositiveInt] = None
 
 
 class BookPrivateExtendedDTO(DTO):
@@ -40,7 +40,7 @@ class BookPrivateExtendedDTO(DTO):
 
 
 class BookPrivateListDTO(BookPrivateDTO):
-    tags_private: list[TagDTO] = None
+    tags_private: Optional[list[TagDTO]] = None
 
 
 class TagExtendedBookPrivateDTO(TagDTO):

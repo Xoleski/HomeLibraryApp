@@ -45,10 +45,10 @@ const api = {
                     return await apiClient.get("/api/v1/books_private")
                 } catch (e) {}
             },
-            detail: async function(title, author) {
-                console.log(title, author)
+            detail: async function(title, author, slug) {
+                console.log(title, author, slug)
                 try {
-                    const url = `/api/v1/books_private_list?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`;
+                    const url = `/api/v1/books_private/${slug}?title=${encodeURIComponent(title)}&author=${encodeURIComponent(author)}`;
                     const response = await fetch(url);
 //                    const response = await apiClient.get("/api/v1/books_private")
 //                    console.log(title=${encodeURIComponent(title)})

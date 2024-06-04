@@ -32,7 +32,7 @@ router = APIRouter(tags=["Tag"])
 
 
 @router.get(
-    path="/tags_all",
+    path="/tags",
     response_model=list[TagDTO],
     status_code=HTTP_200_OK,
     response_description="List of tags",
@@ -64,7 +64,7 @@ async def tag_list(
     response_model=TagDTO,
     status_code=HTTP_201_CREATED,
     response_description="Detail of tag",
-    summary="Creating a new ctag",
+    summary="Creating a new tag",
     dependencies=[authenticate],
     name="tag-create"
 )
@@ -126,9 +126,9 @@ async def tag_detail(session: DBAsyncSession, tag: str):
             joinedload(Tag.books_private).subqueryload(BookPrivate.tags_private)
         )
     )
-    book = result.scalars().first()
-    print(book)
+    tag_book = result.scalars().first()
+    print(tag_book)
 
-    if book is None:
-        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail=f"tag {tag} does not exist")
-    return TagExtendedBookPrivateDTO.model_validate(obj=book)
+    if tag_book is None:
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail=f"Tag {tag} does not exist")
+    return TagExtendedBookPrivateDTO.model_validate(obj=tag_book)

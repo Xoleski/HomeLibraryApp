@@ -4,6 +4,7 @@ from sqlalchemy.exc import IntegrityError
 
 from fastapi import APIRouter, HTTPException, Path
 from sqlalchemy import select, asc, desc, delete, and_
+from sqlalchemy import event
 from sqlalchemy.orm import joinedload, validates
 from starlette.status import (
     HTTP_200_OK, HTTP_201_CREATED,
@@ -32,8 +33,8 @@ from src.types import (
     CategoryExtendedDTO
 )
 
+from src.utils.slugify import slugify
 from src.tasks.tasks import foo
-from sqlalchemy import event
 
 router = APIRouter(tags=["Category"])
 
@@ -79,11 +80,12 @@ async def category_list(
 
 
 # Event listener for automatically generating slug
-@event.listens_for(Category, 'before_insert')
-def before_insert_listener(mapper, connection, target: Category):
-    # target.to_lowercase()
-    if not target.slug:
-        target.generate_slug()
+# @event.listens_for(Category, 'before_insert')
+# def before_insert_listener(mapper, connection, target: Category):
+#     # target.to_lowercase()
+#     if not target.slug:
+#         target.slug = slugify(value=target.name)
+#         print(f"Generated slug: {target.slug}")
 
 
 @router.post(

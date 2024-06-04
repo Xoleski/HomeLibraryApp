@@ -1,3 +1,5 @@
+from typing import Annotated
+
 from fastapi import Depends, Header, HTTPException
 from fastapi.requests import Request
 from starlette.status import HTTP_403_FORBIDDEN, HTTP_404_NOT_FOUND
@@ -9,10 +11,14 @@ from src.settings import jwt_manager
 __all__ = [
     "authenticate",
     "get_current_user",
+    "CurrentUser",
 ]
 
 
-async def _authenticate(request: Request, db_session: DBAsyncSession, autharization: str = Header(default=None)) -> User:
+async def _authenticate(
+        request: Request,
+        db_session: DBAsyncSession,
+        autharization: str = Header(default=None)) -> User:
     if autharization is None:
         raise HTTPException(
             status_code=HTTP_403_FORBIDDEN
@@ -31,5 +37,8 @@ async def _authenticate(request: Request, db_session: DBAsyncSession, autharizat
 authenticate = Depends(dependency=_authenticate)
 
 
-async def get_current_user(user: User = Depends(_authenticate)) -> User:
-    return user
+async def get_current_user(request: Request) -> User:
+    return request.scope["state"]["user"]
+
+
+CurrentUser = Annotated[User, Depends(dependency=get_current_user)]

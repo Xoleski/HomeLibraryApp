@@ -180,7 +180,7 @@ async function renderGeneralBookCards(slug) {
                         <h3 class="card-title">НАЗВАНИЕ: ${general_book.title}</h3>
                         <p class="text-secondary">АВТОР: ${general_book.author}</p>
                         <div class="tags">
-                            ТЭГИ: ${general_book.tags_general.map(tag => `<span class="tag">${tag.name}</span>`).join('')}
+                            ТЭГИ: ${general_book.tags_general.map(tag => `<span class="tag">${tag.name}</span>`).join(' ')}
                         </div>
                     </div>
                 </button>`;
@@ -188,7 +188,8 @@ async function renderGeneralBookCards(slug) {
             card.querySelector('.card').addEventListener('click', () => {
                 const title = encodeURIComponent(general_book.title);
                 const author = encodeURIComponent(general_book.author);
-                window.location.href = `/books_private?title=${title}&author=${author}`;
+                const slug = encodeURIComponent(general_book.slug);
+                window.location.href = `/${slug}?title=${title}&author=${author}`;
             });
 
             contentDiv.appendChild(card);
@@ -198,8 +199,8 @@ async function renderGeneralBookCards(slug) {
 
 
 
-async function renderBookPrivateCards(title, author) {
-    const response = await api.v1.books_private.detail(title, author);
+async function renderBookPrivateCards(title, author, slug) {
+    const response = await api.v1.books_private.detail(title, author, slug);
     if (response) {
         const contentDiv = document.getElementById("books-private-list");
         contentDiv.innerHTML = "";
@@ -211,9 +212,9 @@ async function renderBookPrivateCards(title, author) {
                     <div class="card-body">
                         <h3 class="card-title">НАЗВАНИЕ КНИГИ: ${book_private.title}</h3>
                         <p class="text-secondary">АВТОР КНИГИ: ${book_private.author}</p>
-                        <p class="text-secondary">ПОЛЬЗОВАТЕЛЬ: ${book_private.user_email}</p>
+                        <p class="text-secondary">ПОЛЬЗОВАТЕЛЬ: ${book_private.user_id}</p>
                         <div class="tags">
-                            ТЭГИ: ${book_private.tags_private.map(tag => `<span class="tag">${tag.name}</span>`).join('')}
+                            ТЭГИ: ${book_private.tags_private.map(tag => `<span class="tag">${tag.name}</span>`).join(' ')}
                         </div>
                     </div>
                 </div>`;
@@ -253,9 +254,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     await getAccessToken();
     await renderCategoryDropdownList();
     let categorySlug = document.location.pathname.split("/")[1];
+    console.log(categorySlug)
     let searchParams = new URLSearchParams(window.location.search);
     let title = searchParams.get("title");
     let author = searchParams.get("author");
+//    let slug = searchParams.get("slug");
+//    general_bookLink.href = `/${general_book.slug}`
 
     if (categorySlug) {
         try {

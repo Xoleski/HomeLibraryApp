@@ -17,7 +17,6 @@ app.mount(path="/static", app=static, name="static")
 templating = Jinja2Templates(directory=settings.BASE_DIR / "templates")
 
 
-
 @app.get(path="/", name="index")
 async def index(request: Request):
     return templating.TemplateResponse(
@@ -40,7 +39,6 @@ async def register(request: Request):
         request=request,
         name="blog/register.html",
     )
-
 
 
 @app.get(path="/{slug}", name="index")

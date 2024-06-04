@@ -3,9 +3,9 @@ from threading import Thread
 
 from .base import AbstractFileStorage
 
-__all__ = (
+__all__ = [
     "FileSystemStorage",
-)
+]
 
 
 class FileSystemStorage(AbstractFileStorage):

@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 
-__all__ =(
-    "AbstractFileStorage",
-)
+__all__ = [
+    "AbstractFileStorage"
+]
 
 
 class AbstractFileStorage(ABC):

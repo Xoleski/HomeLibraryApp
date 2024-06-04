@@ -3,18 +3,15 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import select, and_
 from sqlalchemy.exc import IntegrityError
-from starlette.requests import Request
 from starlette.responses import RedirectResponse
 from starlette.status import (
     HTTP_201_CREATED,
     HTTP_400_BAD_REQUEST,
     HTTP_404_NOT_FOUND,
-    HTTP_401_UNAUTHORIZED,
-    HTTP_422_UNPROCESSABLE_ENTITY
-    )
+    HTTP_422_UNPROCESSABLE_ENTITY,
+)
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
-from src.dependencies.authenticate import authenticate
 from src.dependencies.database_session import DBAsyncSession
 from src.database import User
 from src.exception_handlers import request_validation_exception_handler
@@ -39,12 +36,6 @@ app.add_middleware(
 app.add_exception_handler(
     exc_class_or_status_code=RequestValidationError,
     handler=request_validation_exception_handler  # noqa
-)
-
-
-GOOGLE_LOGIN_URL = (
-    f"https://accounts.google.com/o/oauth2/auth?response_type=code&client_id={settings.GOOGLE_CLIENT_ID.get_secret_value()}"
-    f"&redirect_uri={settings.GOOGLE_REDIRECT_URI}&scope=openid%20profile%20email&access_type=offline"
 )
 
 
@@ -92,7 +83,7 @@ async def login(db_session: DBAsyncSession, data: UserLoginDTO):
         raise HTTPException(
             status_code=HTTP_404_NOT_FOUND,
             detail=f"user with email={data.email} not found"
-    )
+        )
     if not verify_password(password=data.password, hashed_password=user.password):
         raise HTTPException(
             status_code=HTTP_422_UNPROCESSABLE_ENTITY,
@@ -139,7 +130,7 @@ async def refresh(db_session: DBAsyncSession, data: RefreshTokenDTO):
     response_class=RedirectResponse
 )
 async def login_google():
-    return RedirectResponse(url=GOOGLE_LOGIN_URL)
+    return RedirectResponse(url=settings.GOOGLE_LOGIN_URL)
 
 
 @app.get(

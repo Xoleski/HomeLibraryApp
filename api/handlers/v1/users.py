@@ -15,7 +15,7 @@ router = APIRouter(tags=["User"])
 
 
 @router.get(
-    path="/users_all",
+    path="/users",
     response_model=list[UserDTO],
     status_code=HTTP_200_OK,
     response_description="List of users",
@@ -45,7 +45,7 @@ async def users_all(
 
 
 @router.get(
-    path="/user_books_private",
+    path="/user/{id}/book",
     response_model=UserBooksExtendedDTO,
     status_code=HTTP_200_OK,
     response_description="List of user's books",
@@ -58,11 +58,11 @@ async def user_book_list(
         page_number: PageNumberQuery = 25,
         order: BookPrivateSortAttrQuery = "id",
         order_by: SortByQuery = "asc",
-        email: Optional[str] = Query(None, alias='email'),
+        id: Optional[int] = None
 ):
     result = await session.execute(
         select(User)
-        .where(User.email == email)
+        .where(User.id == id)
         .options(
             joinedload(User.books_private).subqueryload(BookPrivate.tags_private)
         )
@@ -71,5 +71,5 @@ async def user_book_list(
     print(book_private)
 
     if book_private is None:
-        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail=f"user {email} does not exist")
+        raise HTTPException(status_code=HTTP_404_NOT_FOUND, detail=f"user {id} does not exist")
     return UserBooksExtendedDTO.model_validate(obj=book_private)

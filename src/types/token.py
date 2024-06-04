@@ -2,7 +2,7 @@ from .base import DTO
 
 __all__ = [
     "TokenPairDTO",
-    "RefreshTokenDTO"
+    "RefreshTokenDTO",
 ]
 
 
